@@ -28,7 +28,7 @@ from .utils import (
 )
 
 
-USER_AGENT = "shorts-pipeline-trend-detection/1.0"
+USER_AGENT = "story-pipeline-trend-detection/5.0 by edurossiter-ops"
 HEADERS = {"User-Agent": USER_AGENT}
 
 
