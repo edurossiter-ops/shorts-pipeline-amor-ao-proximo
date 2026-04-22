@@ -91,8 +91,10 @@ def _escape_ass(text: str) -> str:
 def _align_words(audio_path: Path, model_name: str) -> List[TimedWord]:
     from faster_whisper import WhisperModel
     model = WhisperModel(model_name, device="cpu", compute_type="int8")
+    # vad_filter=False pra evitar download do modelo Silero VAD (causa trava no GitHub Actions).
+    # Narração limpa do ElevenLabs não tem silêncios longos, então VAD não faz diferença prática.
     segments, _ = model.transcribe(
-        str(audio_path), language="pt", word_timestamps=True, vad_filter=True,
+        str(audio_path), language="pt", word_timestamps=True, vad_filter=False,
     )
     words: List[TimedWord] = []
     for seg in segments:
