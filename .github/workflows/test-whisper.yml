@@ -1,0 +1,114 @@
+name: Test Whisper (Debug)
+
+# Workflow de debug isolado pra investigar por que Whisper trava no runner.
+# NÃO é parte do pipeline de produção. Dispara manualmente via "Run workflow".
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-whisper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install only faster-whisper (minimum deps)
+        run: |
+          python -m pip install --upgrade pip
+          # Instala só o necessário pra transcrever — sem FFmpeg, sem outros módulos.
+          # Isso isola Whisper de tudo o mais do pipeline.
+          pip install --prefer-binary faster-whisper
+
+      - name: Show runner environment
+        run: |
+          echo "=== CPU info ==="
+          nproc
+          cat /proc/cpuinfo | grep "model name" | head -2
+          echo ""
+          echo "=== Memory info ==="
+          free -h
+          echo ""
+          echo "=== Disk space ==="
+          df -h /
+
+      - name: Verify audio file exists
+        run: |
+          ls -lh tests/fixtures/audio_teste.mp3
+          echo ""
+          python -c "
+          import wave
+          from pathlib import Path
+          p = Path('tests/fixtures/audio_teste.mp3')
+          print(f'File exists: {p.exists()}')
+          print(f'Size: {p.stat().st_size / 1024 / 1024:.2f} MB')
+          "
+
+      - name: Test Whisper transcription with detailed logs
+        run: |
+          python << 'EOF'
+          import time
+          import sys
+          from pathlib import Path
+
+          print("=" * 60, flush=True)
+          print("[1] Importando faster_whisper...", flush=True)
+          t0 = time.time()
+          from faster_whisper import WhisperModel
+          print(f"[1] OK em {time.time()-t0:.1f}s", flush=True)
+          print("", flush=True)
+
+          print("[2] Carregando modelo WhisperModel('small', cpu, int8)...", flush=True)
+          t0 = time.time()
+          model = WhisperModel("small", device="cpu", compute_type="int8")
+          print(f"[2] OK em {time.time()-t0:.1f}s", flush=True)
+          print("", flush=True)
+
+          print("[3] Memória após carregar modelo:", flush=True)
+          import os
+          os.system("free -h")
+          print("", flush=True)
+
+          print("[4] Iniciando transcrição (SEM vad_filter)...", flush=True)
+          print("    Audio: tests/fixtures/audio_teste.mp3 (~2min 33s)", flush=True)
+          t0 = time.time()
+          segments, info = model.transcribe(
+              "tests/fixtures/audio_teste.mp3",
+              language="pt",
+              word_timestamps=True,
+              vad_filter=False,
+          )
+          print(f"[4] transcribe() retornou em {time.time()-t0:.1f}s (mas segments é um generator)", flush=True)
+          print(f"    Info: language={info.language}, duration={info.duration:.1f}s", flush=True)
+          print("", flush=True)
+
+          print("[5] Iterando os segments (aqui é onde realmente processa)...", flush=True)
+          t0 = time.time()
+          all_segments = []
+          for i, seg in enumerate(segments):
+              all_segments.append(seg)
+              if i % 10 == 0:
+                  print(f"    segment {i}: {seg.start:.1f}s-{seg.end:.1f}s  \"{seg.text[:60]}\"", flush=True)
+          print(f"[5] OK em {time.time()-t0:.1f}s — {len(all_segments)} segments totais", flush=True)
+          print("", flush=True)
+
+          print("[6] Primeiros 3 segments:", flush=True)
+          for seg in all_segments[:3]:
+              print(f"    [{seg.start:6.2f}s - {seg.end:6.2f}s] {seg.text}", flush=True)
+          print("", flush=True)
+
+          print("[7] Memória após transcrição:", flush=True)
+          os.system("free -h")
+
+          print("", flush=True)
+          print("=" * 60, flush=True)
+          print("SUCESSO — Whisper funcionou!", flush=True)
+          EOF
