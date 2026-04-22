@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -89,24 +90,80 @@ def _escape_ass(text: str) -> str:
 
 
 def _align_words(audio_path: Path, model_name: str) -> List[TimedWord]:
-    from faster_whisper import WhisperModel
-    model = WhisperModel(model_name, device="cpu", compute_type="int8")
-    # vad_filter=False pra evitar download do modelo Silero VAD (causa trava no GitHub Actions).
-    # Narração limpa do ElevenLabs não tem silêncios longos, então VAD não faz diferença prática.
-    segments, _ = model.transcribe(
-        str(audio_path), language="pt", word_timestamps=True, vad_filter=False,
-    )
-    words: List[TimedWord] = []
-    for seg in segments:
-        for w in getattr(seg, "words", None) or []:
-            if w.start is None or w.end is None:
-                continue
-            token = (w.word or "").strip()
-            if token:
-                words.append(TimedWord(token, float(w.start), float(w.end)))
-    if not words:
-        raise PermanentError("Whisper não retornou palavras com timestamp.")
-    return words
+    """
+    Alinha palavras via Whisper, rodando em processo filho isolado.
+
+    Em vez de carregar Whisper no processo principal (que já tem Anthropic SDK,
+    ElevenLabs, Pillow, requests de Pexels, etc. em memória), chama um worker
+    separado via subprocess. Isso garante:
+      - Ambiente limpo de RAM pro Whisper
+      - Liberação total de memória após transcrição (processo filho morre)
+      - Isolamento de eventuais travas de onnxruntime/ctranslate2
+    """
+    import json as json_lib
+
+    logger = get_logger()
+
+    # Arquivo temporário pra receber o output do worker
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".json", delete=False, encoding="utf-8"
+    ) as tmp:
+        output_path = Path(tmp.name)
+
+    try:
+        cmd = [
+            sys.executable, "-m", "shorts_pipeline._whisper_worker",
+            "--audio", str(audio_path),
+            "--model", model_name,
+            "--output", str(output_path),
+        ]
+        logger.info(f"Executando worker Whisper: {' '.join(cmd)}")
+
+        # Timeout de 10 minutos — se passar disso é trava real, não lentidão
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=600,
+            check=False,
+        )
+
+        # Imprime stdout/stderr do worker no log principal
+        if result.stdout:
+            for line in result.stdout.splitlines():
+                logger.info(f"  {line}")
+        if result.stderr:
+            for line in result.stderr.splitlines():
+                logger.warning(f"  [worker stderr] {line}")
+
+        if result.returncode != 0:
+            raise PermanentError(
+                f"Worker Whisper retornou código {result.returncode}. "
+                f"Ver logs acima."
+            )
+
+        # Lê o JSON de palavras
+        with output_path.open("r", encoding="utf-8") as f:
+            raw_words = json_lib.load(f)
+
+        words = [
+            TimedWord(w["word"], float(w["start"]), float(w["end"]))
+            for w in raw_words
+        ]
+
+        if not words:
+            raise PermanentError("Whisper não retornou palavras com timestamp.")
+        return words
+
+    except subprocess.TimeoutExpired:
+        raise PermanentError(
+            "Worker Whisper excedeu 10 minutos. Trava real — não continuar."
+        )
+    finally:
+        try:
+            output_path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def _build_srt(words: List[TimedWord], out: Path, max_per_caption: int) -> None:
