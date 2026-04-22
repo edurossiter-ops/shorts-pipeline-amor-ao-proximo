@@ -1,4 +1,7 @@
-# Canal "Amor ao Próximo" — histórias do dia a dia à luz do Evangelho.
+# Canal "Amor ao Próximo" — reflexões cristãs sobre dilemas do dia a dia.
+#
+# Fonte de tema: versículos bíblicos (arquivo local configs/versiculos.json).
+# Formato editorial: REFLEXÃO cristã sobre dilemas da vida, NÃO história de personagem.
 #
 # Cálculo da duração:
 #   450 palavras × (60s ÷ 150 palavras/min @ speed 1.20) ÷ aceleração 1.10
@@ -6,48 +9,53 @@
 
 channel:
   name: "amor_ao_proximo"
-  youtube_channel_id: "UC_COLE_AQUI_O_ID_DO_SEU_CANAL_CRISTAO"   # ⚠️ TROCAR depois
+  # youtube_channel_id opcional — quando não informado, usa o canal padrão da conta.
+  # Como o token OAuth já está amarrado ao canal "Amor ao Próximo", pode deixar comentado.
+  # youtube_channel_id: "UCxxxxxxxxxxxxxxxxxxxxx"
 
-# --- Coleta de temas no Reddit (subs cristãos em inglês, usado só como inspiração) ---
-trend:
-  max_posts_per_subreddit: 20
-  recent_trends_limit: 10
-  subreddits:
-    - pillar: "testemunho_pessoal"
-      theme: "fe_no_cotidiano"
-      subs: ["Christianity", "TrueChristian", "Christian"]
-    - pillar: "dilema_moral"
-      theme: "familia"
-      subs: ["ChristianParenting", "AskAChristian"]
-    - pillar: "experiencia_espiritual"
-      theme: "fe_no_cotidiano"
-      subs: ["ChristianMysticism", "Christian"]
-    - pillar: "relacionamento"
-      theme: "amor_e_fe"
-      subs: ["CatholicDating", "AskAChristian"]
+# --- Fonte de tema: versículos bíblicos ---
+bible:
+  versiculos_file: "configs/versiculos.json"
+  # Lista de ganchos de abertura. O pipeline sorteia um por vídeo, evitando
+  # repetir os usados nos últimos N (ver recent_hooks_avoid).
+  # Estilos usados: A (mensagem direta), B (providência), C (pergunta reflexiva).
+  ganchos:
+    # Estilo A — Mensagem direta de Deus
+    - "Deus tem uma mensagem pra você hoje..."
+    - "Hoje Deus quer te dizer uma coisa importante..."
+    # Estilo B — Providência / encontro não casual
+    - "Talvez Deus tenha colocado este vídeo no seu caminho por um motivo..."
+    - "Existe uma razão pra você estar ouvindo isso agora..."
+    - "Esta reflexão talvez seja a resposta que você pediu em oração..."
+    # Estilo C — Pergunta que provoca reflexão
+    - "Você já se pegou pensando por que algumas dores não vão embora?"
+    - "E se o que você está passando tivesse um propósito maior?"
+    - "Quantas vezes você já pediu um sinal sem receber resposta?"
+  recent_hooks_avoid: 5
 
-# --- Geração de história (Claude) ---
+# --- Geração da reflexão (Claude) ---
 story:
   language: "Português Brasileiro"
   channel_identity: |
-    Canal "Amor ao Próximo": histórias do dia a dia à luz dos ensinamentos de Cristo.
-    Situações comuns — família, trabalho, amizades, conflitos e escolhas difíceis —
-    revisitadas a partir de uma perspectiva cristã, mostrando como o Evangelho
-    transforma atitudes, pensamentos e relacionamentos.
+    Canal "Amor ao Próximo": reflexões cristãs sobre dilemas da vida real.
+    Trata de situações que TODO MUNDO vive — família, trabalho, amizades, amor,
+    perda, dúvida, medo, culpa, esperança — à luz da fé em Jesus Cristo.
 
-    Tom: profundidade bíblica e humanidade, SEM moralismos exagerados.
-    Inspirar perdão, compaixão, esperança e fé prática.
-    Linguagem acessível, narrativa, emocional, NÃO doutrinária ou panfletária.
-    O viés cristão deve aparecer naturalmente nas escolhas dos personagens
-    e nas reflexões finais — nunca como sermão.
+    FORMATO: REFLEXÃO, NÃO HISTÓRIA.
+    Não conte histórias ("uma mulher estava andando na rua...", "João trabalhava...").
+    Fale DIRETAMENTE com a pessoa que está ouvindo, em segunda pessoa ("você").
+    Aborde um DILEMA REAL que ela pode estar vivendo e mostre como o Evangelho
+    oferece um caminho.
 
+    Tom: profundidade espiritual + humanidade. Acolhedor, mas sem relativizar o
+    pecado. Mostra Cristo como resposta, não como opção filosófica.
+    Linguagem coloquial, emocional, próxima. NÃO doutrinária, NÃO panfletária,
+    NÃO com jargão teológico. Mas também NÃO genérica — cristã de verdade.
+
+  # Os "pillars" e "themes" aqui não são usados diretamente pela fonte bíblica,
+  # mas ficam como referência editorial sobre o que o canal cobre.
   allowed_pillars:
-    - testemunho_pessoal
-    - dilema_moral
-    - experiencia_espiritual
-    - relacionamento
-    - reconciliacao
-    - perdao
+    - reflexao_crista
 
   allowed_themes:
     - familia
@@ -55,8 +63,9 @@ story:
     - amizade
     - amor_e_fe
     - perda_e_luto
-    - conversao
-    - cotidiano
+    - medo_ansiedade
+    - perdao_reconciliacao
+    - proposito_chamado
     - fe_no_cotidiano
 
   forbidden_topics:
@@ -64,58 +73,67 @@ story:
     - Conteúdo sectário ou teologicamente polêmico (predestinação, denominações brigando)
     - Promessas de cura ou milagre vinculados a pagamento (teologia da prosperidade)
     - Suicídio, aborto, violência ou drogas como ato explícito (pode ser referência indireta)
-    - Citação literal de versículos bíblicos (use paráfrases tipo "como ensina a escritura...")
+    - Citação literal de versículos bíblicos (o versículo é seed INTERNO, nunca citado)
     - Nomes de pessoas reais, igrejas reais ou denominações específicas
+    - Narrativa em terceira pessoa ("João pensou...", "Maria entrou...")
 
   duration_target_seconds: 180   # alvo da NARRAÇÃO crua (será acelerada em 1.10x)
   word_count_min: 420
   word_count_max: 480
   include_hook: true
 
-  # CTA exemplo — você pode editar pra outras variações
-  cta_text: "Se essa mensagem tocou seu coração, deixa um amém aqui embaixo e se inscreve no canal Amor ao Próximo pra mais histórias que falam direto com a sua fé."
+  cta_text: "Se essa mensagem tocou seu coração, deixa um amém aqui embaixo e se inscreve no canal Amor ao Próximo pra mais reflexões que falam direto com a sua fé."
 
   extra_instructions: |
     REGRAS DURAS (siga à risca):
-    - Mínimo {word_count_min} e máximo {word_count_max} palavras na história final.
-    - Conte palavras antes de fechar — se passar do limite, corte do meio.
+    - NUNCA cite o versículo literalmente. Ele é SEED INTERNO, sua bússola
+      temática. A pessoa não precisa reconhecer que partiu de um versículo.
 
     GANCHO INICIAL (primeira frase, OBRIGATÓRIO):
-    Use uma das fórmulas abaixo (ou crie variação no mesmo espírito):
-    - "Deus tem uma mensagem pra você hoje..."
-    - "Talvez Deus tenha colocado este vídeo no seu caminho por um motivo..."
-    - "Hoje Deus quer te dizer uma coisa importante..."
-    - "Existe uma razão pra você estar ouvindo isso agora..."
-    - "Esta história talvez seja a resposta que você pediu em oração..."
+    Use o gancho que foi sorteado no input da etapa (campo "gancho_escolhido").
+    NÃO invente outro. NÃO modifique o gancho — use literal na primeira frase.
 
-    ESTRUTURA DA NARRATIVA (em 5 partes equilibradas):
-    1. Gancho (primeira frase — uma das fórmulas acima)
-    2. Apresentação da situação cotidiana (uma família, um trabalho, um conflito)
-    3. Conflito/dilema moral concreto (algo dramático, doloroso)
-    4. Momento de virada espiritual (nem sempre milagre — pode ser uma conversa,
-       uma lembrança da fé, um gesto de perdão)
-    5. Resolução + reflexão final + CTA
+    ESTRUTURA DA REFLEXÃO (em 6 partes, fluindo natural):
+    1. Gancho (primeira frase — o gancho sorteado)
+    2. Nomear o dilema: uma pergunta ou situação que a pessoa já viveu
+       (ex: "Quantas vezes você já perdoou alguém e se sentiu um idiota depois?")
+    3. Desenvolver a dor/dúvida: validar o sentimento, mostrar que é universal
+    4. Ancorar em Cristo: trazer a perspectiva de Jesus sobre isso (o que Ele
+       ensinou, como Ele viveu, o que Ele prometeu). Use o versículo-seed como
+       bússola temática, SEM citá-lo. Mencionar Jesus/Cristo explicitamente.
+    5. Oração curta (4-6 linhas) falando com Deus EM NOME de quem ouve, tipo
+       "Senhor, te agradeço por quem está ouvindo isso agora. Que você toque..."
+    6. CTA final (use o cta_text como base, pode adaptar 1-2 palavras)
 
-    PAUSAS (CRÍTICO — vídeo precisa ficar curto):
-    - NUNCA use [long pause]
-    - Use [short pause] no MÁXIMO 2 vezes em toda a história
-    - Sem pausas dramáticas longas; mantenha o ritmo acelerado
+    PESSOA E VOZ:
+    - Sempre em SEGUNDA PESSOA: "você", "pra você", "quantas vezes você..."
+    - NUNCA em terceira pessoa ("havia uma mulher que...", "João sentia...")
+    - NUNCA em primeira pessoa plural forçada ("nós todos sabemos...")
+    - Fale DIRETO com a pessoa, como se estivesse ao lado dela
 
-    FORMATAÇÃO PARA ELEVENLABS:
-    - Não use audio tags em colchetes além de [short pause] (no máximo 2)
-    - Use travessões (—) para revelações e momentos de tensão
-    - MAIÚSCULAS pontuais para ênfase (máximo 2 vezes)
+    TOM CRISTÃO EXPLÍCITO:
+    - Mencionar Jesus/Cristo por nome, frequentemente
+    - Usar "Deus", "Senhor", "Pai" naturalmente
+    - A resposta é sempre Cristo — não apenas "positividade" ou "resiliência"
+    - Evite virar autoajuda genérica
+
+    PAUSAS E RITMO:
+    - NUNCA use audio tags em colchetes (tipo [short pause], [pause], etc.)
+      O modelo de voz LÊ LITERALMENTE o texto entre colchetes.
+    - Use pontuação natural pra pausas: vírgula, ponto, travessão (—).
+    - MAIÚSCULAS pontuais pra ênfase (máximo 2 vezes em toda a reflexão).
 
     LINGUAGEM:
-    - Português Brasileiro coloquial, acessível, emocional
-    - Sem nomes próprios — use "uma mãe", "um pai", "um homem", "uma mulher"
-    - Sem palavrão, mesmo que leve
-    - Sem jargão teológico (evite "graça santificante", "kenosis", etc.)
-    - Pode dizer "Deus", "Cristo", "Jesus", "Senhor" naturalmente
+    - Português Brasileiro coloquial, acessível, emocional.
+    - Sem palavrão.
+    - Sem jargão teológico (evite "graça santificante", "kenosis", "justificação",
+      "santificação progressiva", etc.).
+    - Sem "jargão evangélico genérico" ("Deus tem um propósito maior" dito seco
+      como frase de bolacha). Sempre desenvolver a ideia.
 
   model: "claude-sonnet-4-20250514"
   max_tokens: 4000
-  temperature: 0.85   # menor que o canal de drama — tom mais consistente
+  temperature: 0.85
 
 # --- Narração (ElevenLabs) ---
 narration:
@@ -180,10 +198,11 @@ youtube:
   tags:
     - "fe"
     - "deus"
+    - "jesus"
     - "cristao"
     - "evangelho"
-    - "amor ao proximo"
     - "reflexao crista"
+    - "amor ao proximo"
     - "shorts"
   made_for_kids: false
   default_language: "pt"

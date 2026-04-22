@@ -1,11 +1,16 @@
 """
-Etapa 2: Geração de história via Claude API.
+Etapa 2: Geração de REFLEXÃO cristã via Claude API.
 
-Refatorado para:
-- System prompt totalmente parametrizado por canal (drama vs cristão vs outros)
-- Duração, CTA, gancho, temas proibidos configuráveis
-- Retry com classificação de erro (sobrecarga vs auth errada)
-- API key vem de env var, NUNCA do código
+Recebe como input um topic_candidate.json com:
+- versículo bíblico (seed interno, não citado)
+- tema (ângulo da reflexão)
+- gancho (frase de abertura sorteada)
+
+Produz uma reflexão em segunda pessoa sobre dilemas da vida real,
+ancorada no versículo (sem citá-lo) e que menciona Jesus/Cristo explicitamente.
+
+Formato de saída: mesmo `story_text.json` que o resto do pipeline já espera,
+pra não quebrar as etapas seguintes (narração, montagem, upload).
 """
 from __future__ import annotations
 
@@ -17,6 +22,7 @@ from typing import Any, Dict, List
 from .config import PipelineConfig
 from .utils import (
     PermanentError,
+    TransientError,
     get_control_dir,
     get_logger,
     http_request_with_retry,
@@ -34,52 +40,31 @@ RECENT_PROFILES_LIMIT = 10
 
 def _build_system_prompt(config: PipelineConfig) -> str:
     """
-    Monta o system prompt a partir da config do canal.
-    Permite canais muito diferentes (drama / cristão / motivacional) sem mexer no código.
+    Monta o system prompt para reflexão cristã a partir da config do canal.
     """
     s = config.story
-
-    pillars_str = ", ".join(s.allowed_pillars) if s.allowed_pillars else "livre"
-    themes_str = ", ".join(s.allowed_themes) if s.allowed_themes else "livre"
-    forbidden_str = "\n".join(f"- {t}" for t in s.forbidden_topics) if s.forbidden_topics else "- (nenhum)"
-
-    hook_instruction = (
-        "- Comece com um hook forte na PRIMEIRA frase que provoque curiosidade imediata."
-        if s.include_hook
-        else "- Começo natural, sem hook manipulativo."
+    forbidden_str = (
+        "\n".join(f"- {t}" for t in s.forbidden_topics)
+        if s.forbidden_topics
+        else "- (nenhum)"
     )
 
     return f"""
-Você é um redator especializado em roteiros curtos para YouTube Shorts.
-Sua tarefa é produzir uma história em {s.language}, já FORMATADA para Text-to-Speech do ElevenLabs.
+Você é um redator cristão especializado em reflexões curtas para YouTube Shorts.
+Sua tarefa é produzir uma REFLEXÃO em {s.language}, já formatada para Text-to-Speech.
 
 IDENTIDADE DO CANAL:
 {s.channel_identity}
 
-Pilares narrativos permitidos: {pillars_str}
-Temas permitidos: {themes_str}
+REQUISITOS DE ESTRUTURA:
+- Duração-alvo da narração: ~{s.duration_target_seconds} segundos
+- Contagem de palavras: ENTRE {s.word_count_min} e {s.word_count_max} palavras.
+  Conte antes de fechar. Se passar, corte frases do meio.
+- Primeira frase: use LITERAL o "gancho_escolhido" fornecido no input.
+- Última frase: use o CTA configurado: "{s.cta_text}"
 
 TEMAS PROIBIDOS (nunca mencionar):
 {forbidden_str}
-
-REQUISITOS DE ESTRUTURA:
-- Duração-alvo da narração: ~{s.duration_target_seconds} segundos
-- Contagem de palavras: entre {s.word_count_min} e {s.word_count_max}
-{hook_instruction}
-- Turning point claro no meio
-- CTA como ÚLTIMA frase: "{s.cta_text}"
-
-FORMATAÇÃO PARA ELEVENLABS:
-- Audio tags em colchetes em inglês, imediatamente antes do trecho relevante.
-- [short pause] para tensão rápida.
-- [long pause] no máximo 1 vez.
-- Travessões (—) para interrupções e revelações.
-- MAIÚSCULAS pontuais para ênfase (máximo 2 por história).
-
-REGRAS DE VARIAÇÃO:
-- NÃO repita ou fique próximo demais dos perfis recentes fornecidos.
-- Não repita o mesmo pillar do último vídeo.
-- Não repita o mesmo conflict_type dos últimos 5 vídeos.
 
 {s.extra_instructions}
 
@@ -93,56 +78,92 @@ FORMATO DE SAÍDA (EXATAMENTE ESTES 3 BLOCOS, NESTA ORDEM):
 {{...json válido...}}
 </story_package_json>
 
-<story_text_formatted>
-...texto final em {s.language} pronto para ElevenLabs...
-</story_text_formatted>
+<reflexao_text_formatted>
+...texto final em {s.language} pronto para narração...
+</reflexao_text_formatted>
 
 1. editorial_brief_json deve conter:
 {{
-  "pillar": "...",
-  "theme": "...",
-  "conflict_type": "...",
-  "emotional_pov": "...",
-  "hook_direction": "...",
-  "target_audience": "...",
-  "tone": "...",
-  "constraints": ["..."],
+  "versiculo_ref": "... (o ref do versículo recebido no input)",
+  "tema": "... (o tema_escolhido do input)",
+  "gancho_usado": "... (o gancho_escolhido literal)",
+  "target_audience": "... (quem é a pessoa que provavelmente vai ouvir)",
+  "dilema_abordado": "... (qual dilema concreto da vida você está tratando)",
+  "tom": "... (acolhedor / confrontador / consolador / etc)",
   "outline": {{
-    "scenario_initial": "...",
-    "problem_trigger": "...",
-    "worst_moment": "...",
-    "turning_point": "...",
-    "final_state": "...",
-    "target_audience_feeling": "..."
+    "gancho": "...",
+    "dilema_nomeado": "...",
+    "validacao_da_dor": "...",
+    "perspectiva_crista": "...",
+    "oracao": "...",
+    "cta_final": "..."
   }}
 }}
 
 2. story_package_json deve conter:
 {{
   "status": "generated",
-  "pillar": "...",
-  "theme": "...",
-  "conflict_type": "...",
-  "emotional_pov": "...",
-  "title_hint": "...",
-  "cta": "..."
+  "versiculo_ref": "...",
+  "tema": "...",
+  "emotional_pov": "... (ex: esperança, consolo, conforto, coragem)",
+  "title_hint": "... título curto, 5-8 palavras, SEM ponto final",
+  "cta": "... texto do CTA final"
 }}
 
-3. story_text_formatted contém APENAS o texto final em {s.language} pronto para narração.
-O CTA deve ser a ÚLTIMA frase.
+3. reflexao_text_formatted contém APENAS o texto final em {s.language} pronto
+para narração. A primeira frase é o gancho sorteado. A última frase é o CTA.
 """.strip()
 
 
 def _build_recent_profiles_text(items: List[Dict[str, Any]]) -> str:
+    """Texto resumido dos últimos N títulos/temas pra evitar repetição temática."""
     if not items:
-        return "Nenhum perfil recente registrado."
+        return "Nenhuma reflexão recente registrada."
     lines = []
     for idx, item in enumerate(items[:RECENT_PROFILES_LIMIT], start=1):
         lines.append(
-            f"{idx}. pillar={item.get('pillar')} | theme={item.get('theme')} | "
-            f"conflict_type={item.get('conflict_type')} | title_hint={item.get('title_hint')}"
+            f"{idx}. tema={item.get('theme')} | emotional_pov={item.get('emotional_pov')} "
+            f"| title={item.get('title_hint')}"
         )
     return "\n".join(lines)
+
+
+def _build_user_prompt(
+    topic: Dict[str, Any],
+    recent_profiles: List[Dict[str, Any]],
+) -> str:
+    """
+    Constrói o prompt do usuário com versículo + tema + gancho + reflexões recentes.
+    Mostra tudo de forma clara e direta pro Claude.
+    """
+    versiculo_ref = topic.get("versiculo_ref", "")
+    versiculo_texto = topic.get("versiculo_texto", "")
+    tema = topic.get("tema_escolhido", "")
+    gancho = topic.get("gancho_escolhido", "")
+    categoria = topic.get("categoria", "")
+
+    return f"""
+Escreva uma reflexão cristã usando os seguintes elementos:
+
+VERSÍCULO-SEED (bússola temática — NÃO cite, NÃO parafraseie literalmente):
+Referência: {versiculo_ref}
+Texto: "{versiculo_texto}"
+Categoria: {categoria}
+
+TEMA/ÂNGULO da reflexão (foco principal):
+{tema}
+
+GANCHO DE ABERTURA (use LITERAL na primeira frase):
+"{gancho}"
+
+Use o versículo como bússola interna do que refletir, mas NUNCA o cite, NUNCA o
+parafraseie de forma reconhecível. A pessoa que ouvir não deve saber que a
+reflexão partiu de um versículo específico — ela deve apenas sentir que você
+está falando direto com ela sobre algo que ela vive.
+
+REFLEXÕES RECENTES A EVITAR (não repita temas/títulos parecidos):
+{_build_recent_profiles_text(recent_profiles)}
+""".strip()
 
 
 def _call_claude(
@@ -158,23 +179,24 @@ def _call_claude(
         "content-type": "application/json",
     }
 
-    user_prompt = (
-        "Abaixo o JSON do agente de trend-detection:\n\n"
-        f"{json.dumps(topic_candidate, ensure_ascii=False, indent=2)}\n\n"
-        "Perfis recentes a evitar:\n"
-        f"{_build_recent_profiles_text(recent_profiles)}"
-    )
-
     payload = {
         "model": config.story.model,
         "max_tokens": config.story.max_tokens,
         "temperature": config.story.temperature,
         "system": _build_system_prompt(config),
-        "messages": [{"role": "user", "content": user_prompt}],
+        "messages": [
+            {"role": "user", "content": _build_user_prompt(topic_candidate, recent_profiles)}
+        ],
     }
 
     resp = http_request_with_retry(
-        "POST", ANTHROPIC_URL, headers=headers, json=payload, timeout=300, max_attempts=4, initial_delay=5.0
+        "POST",
+        ANTHROPIC_URL,
+        headers=headers,
+        json=payload,
+        timeout=300,
+        max_attempts=4,
+        initial_delay=5.0,
     )
     data = resp.json()
     parts = data.get("content", [])
@@ -185,75 +207,133 @@ def _call_claude(
 
 
 def _extract_block(text: str, tag: str) -> str:
+    """Extrai conteúdo de uma tag XML-like <tag>...</tag> do texto do Claude."""
     m = re.search(rf"<{tag}>\s*(.*?)\s*</{tag}>", text, flags=re.DOTALL)
     if not m:
         raise PermanentError(f"Bloco <{tag}> não encontrado na resposta do Claude.")
     return m.group(1).strip()
 
 
+def _count_words(text: str) -> int:
+    """Conta palavras removendo pontuação básica."""
+    cleaned = re.sub(r"[^\w\s]", " ", text)
+    return len([w for w in cleaned.split() if w.strip()])
+
+
+def _validate_word_count(text: str, min_words: int, max_words: int) -> None:
+    """Valida word count dentro dos limites do canal. Fail se fora."""
+    n = _count_words(text)
+    if n < min_words:
+        raise TransientError(
+            f"Reflexão muito curta: {n} palavras (mínimo: {min_words}). "
+            f"Retry vai pedir pro Claude gerar de novo."
+        )
+    if n > max_words:
+        raise TransientError(
+            f"Reflexão muito longa: {n} palavras (máximo: {max_words}). "
+            f"Retry vai pedir pro Claude gerar de novo."
+        )
+
+
 def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
+    """
+    Gera reflexão cristã baseada no topic_candidate da etapa anterior.
+    """
     logger = get_logger()
-    trend_dir = cycle_dir / "trend-detection"
+
+    # Input vem de bible-reflection (nova etapa 1)
+    input_dir = cycle_dir / "bible-reflection"
     editorial_dir = cycle_dir / "editorial-selection"
     story_dir = cycle_dir / "story-generation"
     control_dir = get_control_dir(cycle_dir)
 
-    topic_file = trend_dir / "topic_candidate.json"
+    editorial_dir.mkdir(parents=True, exist_ok=True)
+    story_dir.mkdir(parents=True, exist_ok=True)
+
+    topic_file = input_dir / "topic_candidate.json"
     if not topic_file.exists():
-        raise PermanentError(f"topic_candidate.json não encontrado: {topic_file}")
+        raise PermanentError(
+            f"topic_candidate.json não encontrado: {topic_file}. "
+            f"A etapa bible_reflection rodou?"
+        )
 
     topic = load_json(topic_file)
     recent_profiles = load_json_if_exists(
         control_dir / "recent_story_profiles.json", {"items": []}
     ).get("items", [])
 
+    logger.info(
+        f"Gerando reflexão | versículo: {topic.get('versiculo_ref')} | "
+        f"tema: {topic.get('tema_escolhido')}"
+    )
+
     raw = _call_claude(config, topic, recent_profiles)
     (story_dir / "claude_raw_response.txt").write_text(raw, encoding="utf-8")
 
     editorial_json = _extract_block(raw, "editorial_brief_json")
     package_json = _extract_block(raw, "story_package_json")
-    story_text = _extract_block(raw, "story_text_formatted")
+    # Tag renomeada de story_text_formatted -> reflexao_text_formatted pra clareza
+    reflexao_text = _extract_block(raw, "reflexao_text_formatted")
+
+    # Validação de word count (fail se fora do limite configurado)
+    _validate_word_count(
+        reflexao_text, config.story.word_count_min, config.story.word_count_max
+    )
 
     editorial_data = json.loads(editorial_json)
     package_data = json.loads(package_json)
 
     cta = (package_data.get("cta") or "").strip()
     if not cta:
-        last_line = next((ln.strip() for ln in reversed(story_text.splitlines()) if ln.strip()), "")
+        last_line = next(
+            (ln.strip() for ln in reversed(reflexao_text.splitlines()) if ln.strip()),
+            "",
+        )
         cta = last_line or config.story.cta_text
 
     cycle_id = cycle_dir.name
 
+    # Payload editorial (inclui info do versículo/gancho usados)
     editorial_payload = {
         "cycle_id": cycle_id,
+        "versiculo_ref": topic.get("versiculo_ref", ""),
+        "tema_escolhido": topic.get("tema_escolhido", ""),
+        "gancho_usado": topic.get("gancho_escolhido", ""),
         **editorial_data,
         "status": "success",
         "generated_at": now_iso(),
     }
     save_json(editorial_dir / "editorial_brief.json", editorial_payload)
 
+    # story_text.json — formato que as etapas seguintes (narração) esperam
+    # Mantemos os campos pillar/theme/conflict_type/emotional_pov pra compat,
+    # só que agora refletindo a natureza de reflexão (não história).
     story_payload = {
         "cycle_id": cycle_id,
-        "story_body": story_text,
+        "story_body": reflexao_text,
         "target_duration_seconds": config.story.duration_target_seconds,
         "status": "success",
-        "pillar": package_data.get("pillar", ""),
-        "theme": package_data.get("theme", ""),
-        "conflict_type": package_data.get("conflict_type", ""),
+        "pillar": "reflexao_crista",
+        "theme": topic.get("tema_escolhido", ""),
+        "conflict_type": "",  # não se aplica a reflexão
         "emotional_pov": package_data.get("emotional_pov", ""),
         "title_hint": package_data.get("title_hint", ""),
         "cta": cta,
+        # Metadados extras específicos de reflexão
+        "versiculo_ref": topic.get("versiculo_ref", ""),
+        "gancho_usado": topic.get("gancho_escolhido", ""),
+        "word_count": _count_words(reflexao_text),
         "generated_at": now_iso(),
     }
     save_json(story_dir / "story_text.json", story_payload)
-    (story_dir / "story_text_formatted.txt").write_text(story_text, encoding="utf-8")
+    (story_dir / "story_text_formatted.txt").write_text(reflexao_text, encoding="utf-8")
 
-    # Atualiza recent profiles
+    # Atualiza recent_story_profiles (pra o próximo ciclo evitar tema parecido)
     new_profile = {
         "cycle_id": cycle_id,
-        "pillar": story_payload["pillar"],
+        "pillar": "reflexao_crista",
         "theme": story_payload["theme"],
-        "conflict_type": story_payload["conflict_type"],
+        "conflict_type": "",
         "emotional_pov": story_payload["emotional_pov"],
         "title_hint": story_payload["title_hint"],
         "saved_at": now_iso(),
@@ -261,5 +341,8 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     updated = [new_profile] + recent_profiles[: RECENT_PROFILES_LIMIT - 1]
     save_json(control_dir / "recent_story_profiles.json", {"items": updated})
 
-    logger.info(f"História gerada: {story_payload['title_hint']}")
+    logger.info(
+        f"Reflexão gerada: \"{story_payload['title_hint']}\" "
+        f"({story_payload['word_count']} palavras)"
+    )
     return story_payload

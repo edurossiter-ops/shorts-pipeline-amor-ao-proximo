@@ -38,6 +38,19 @@ class TrendConfig:
 
 
 @dataclass
+class BibleConfig:
+    """
+    Configuração da fonte bíblica (alternativa ao Reddit).
+    - versiculos_file: caminho pro JSON com os versículos
+    - ganchos: lista de aberturas possíveis (o pipeline sorteia uma)
+    - recent_hooks_avoid: quantos ganchos recentes evitar (anti-repetição)
+    """
+    versiculos_file: str = "configs/versiculos.json"
+    ganchos: List[str] = field(default_factory=list)
+    recent_hooks_avoid: int = 5
+
+
+@dataclass
 class StoryConfig:
     # Identidade e tom do canal (usado no system prompt)
     language: str = "Português Brasileiro"
@@ -137,12 +150,16 @@ class RetryConfig:
 @dataclass
 class PipelineConfig:
     channel: Channel
-    trend: TrendConfig
     story: StoryConfig
     narration: NarrationConfig
     visual: VisualConfig
     video: VideoAssemblyConfig
     youtube: YouTubeConfig
+    # Fontes de tema — pelo menos uma deve estar presente no YAML.
+    # trend: fonte Reddit (legacy, mantido pra compatibilidade com canal "dramas_reais")
+    # bible: fonte versículos bíblicos (novo, usado pelo canal "amor_ao_proximo")
+    trend: Optional[TrendConfig] = None
+    bible: Optional[BibleConfig] = None
     secrets: SecretsConfig = field(default_factory=SecretsConfig)
     retry: RetryConfig = field(default_factory=RetryConfig)
 
@@ -164,9 +181,18 @@ def _build_trend_config(raw: Dict[str, Any]) -> TrendConfig:
     )
 
 
+def _build_bible_config(raw: Dict[str, Any]) -> BibleConfig:
+    return BibleConfig(
+        versiculos_file=raw.get("versiculos_file", "configs/versiculos.json"),
+        ganchos=list(raw.get("ganchos", [])),
+        recent_hooks_avoid=raw.get("recent_hooks_avoid", 5),
+    )
+
+
 def load_config(path: Path) -> PipelineConfig:
     """
     Carrega e valida um arquivo YAML de configuração.
+    Aceita canais com fonte Reddit (trend) ou fonte bíblica (bible).
     """
     if not path.exists():
         raise PermanentError(f"Arquivo de config não encontrado: {path}")
@@ -179,7 +205,15 @@ def load_config(path: Path) -> PipelineConfig:
 
     try:
         channel = Channel(**raw["channel"])
-        trend = _build_trend_config(raw.get("trend", {}))
+        # Fontes de tema são opcionais no schema, mas pelo menos uma precisa existir.
+        trend = _build_trend_config(raw["trend"]) if "trend" in raw else None
+        bible = _build_bible_config(raw["bible"]) if "bible" in raw else None
+        if trend is None and bible is None:
+            raise PermanentError(
+                f"Config {path} não define fonte de tema. "
+                f"Adicione seção 'trend' (Reddit) ou 'bible' (versículos)."
+            )
+
         story = StoryConfig(**raw.get("story", {}))
         narration = NarrationConfig(**raw["narration"])
         visual = VisualConfig(**raw["visual"])
@@ -195,6 +229,7 @@ def load_config(path: Path) -> PipelineConfig:
     return PipelineConfig(
         channel=channel,
         trend=trend,
+        bible=bible,
         story=story,
         narration=narration,
         visual=visual,

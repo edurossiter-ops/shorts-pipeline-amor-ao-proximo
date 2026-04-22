@@ -23,7 +23,7 @@ from .utils import (
     save_json,
     setup_logging,
 )
-from . import trend_detection
+from . import bible_reflection
 from . import story_generation
 from . import narration as narration_mod
 from . import visual_selection
@@ -34,7 +34,7 @@ from . import publishing
 # Ordem das etapas e suas dependências lógicas.
 # Se uma etapa falhar definitivamente, as próximas são puladas (não adianta tentar).
 STEPS: List[Dict[str, Any]] = [
-    {"name": "trend_detection",   "fn": trend_detection.run,   "required": True},
+    {"name": "bible_reflection",  "fn": bible_reflection.run,  "required": True},
     {"name": "story_generation",  "fn": story_generation.run,  "required": True},
     {"name": "narration",         "fn": narration_mod.run,     "required": True},
     {"name": "visual_selection",  "fn": visual_selection.run,  "required": True},
