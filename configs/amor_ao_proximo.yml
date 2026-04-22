@@ -1,0 +1,197 @@
+# Canal "Amor ao Próximo" — histórias do dia a dia à luz do Evangelho.
+#
+# Cálculo da duração:
+#   450 palavras × (60s ÷ 150 palavras/min @ speed 1.20) ÷ aceleração 1.10
+#   = ~164s de vídeo final (margem de 16s antes do limite de 180s/3min)
+
+channel:
+  name: "amor_ao_proximo"
+  youtube_channel_id: "UC_COLE_AQUI_O_ID_DO_SEU_CANAL_CRISTAO"   # ⚠️ TROCAR depois
+
+# --- Coleta de temas no Reddit (subs cristãos em inglês, usado só como inspiração) ---
+trend:
+  max_posts_per_subreddit: 20
+  recent_trends_limit: 10
+  subreddits:
+    - pillar: "testemunho_pessoal"
+      theme: "fe_no_cotidiano"
+      subs: ["Christianity", "TrueChristian", "Christian"]
+    - pillar: "dilema_moral"
+      theme: "familia"
+      subs: ["ChristianParenting", "AskAChristian"]
+    - pillar: "experiencia_espiritual"
+      theme: "fe_no_cotidiano"
+      subs: ["ChristianMysticism", "Christian"]
+    - pillar: "relacionamento"
+      theme: "amor_e_fe"
+      subs: ["CatholicDating", "AskAChristian"]
+
+# --- Geração de história (Claude) ---
+story:
+  language: "Português Brasileiro"
+  channel_identity: |
+    Canal "Amor ao Próximo": histórias do dia a dia à luz dos ensinamentos de Cristo.
+    Situações comuns — família, trabalho, amizades, conflitos e escolhas difíceis —
+    revisitadas a partir de uma perspectiva cristã, mostrando como o Evangelho
+    transforma atitudes, pensamentos e relacionamentos.
+
+    Tom: profundidade bíblica e humanidade, SEM moralismos exagerados.
+    Inspirar perdão, compaixão, esperança e fé prática.
+    Linguagem acessível, narrativa, emocional, NÃO doutrinária ou panfletária.
+    O viés cristão deve aparecer naturalmente nas escolhas dos personagens
+    e nas reflexões finais — nunca como sermão.
+
+  allowed_pillars:
+    - testemunho_pessoal
+    - dilema_moral
+    - experiencia_espiritual
+    - relacionamento
+    - reconciliacao
+    - perdao
+
+  allowed_themes:
+    - familia
+    - trabalho
+    - amizade
+    - amor_e_fe
+    - perda_e_luto
+    - conversao
+    - cotidiano
+    - fe_no_cotidiano
+
+  forbidden_topics:
+    - Proselitismo agressivo ou ataques a outras religiões
+    - Conteúdo sectário ou teologicamente polêmico (predestinação, denominações brigando)
+    - Promessas de cura ou milagre vinculados a pagamento (teologia da prosperidade)
+    - Suicídio, aborto, violência ou drogas como ato explícito (pode ser referência indireta)
+    - Citação literal de versículos bíblicos (use paráfrases tipo "como ensina a escritura...")
+    - Nomes de pessoas reais, igrejas reais ou denominações específicas
+
+  duration_target_seconds: 180   # alvo da NARRAÇÃO crua (será acelerada em 1.10x)
+  word_count_min: 420
+  word_count_max: 480
+  include_hook: true
+
+  # CTA exemplo — você pode editar pra outras variações
+  cta_text: "Se essa mensagem tocou seu coração, deixa um amém aqui embaixo e se inscreve no canal Amor ao Próximo pra mais histórias que falam direto com a sua fé."
+
+  extra_instructions: |
+    REGRAS DURAS (siga à risca):
+    - Mínimo {word_count_min} e máximo {word_count_max} palavras na história final.
+    - Conte palavras antes de fechar — se passar do limite, corte do meio.
+
+    GANCHO INICIAL (primeira frase, OBRIGATÓRIO):
+    Use uma das fórmulas abaixo (ou crie variação no mesmo espírito):
+    - "Deus tem uma mensagem pra você hoje..."
+    - "Talvez Deus tenha colocado este vídeo no seu caminho por um motivo..."
+    - "Hoje Deus quer te dizer uma coisa importante..."
+    - "Existe uma razão pra você estar ouvindo isso agora..."
+    - "Esta história talvez seja a resposta que você pediu em oração..."
+
+    ESTRUTURA DA NARRATIVA (em 5 partes equilibradas):
+    1. Gancho (primeira frase — uma das fórmulas acima)
+    2. Apresentação da situação cotidiana (uma família, um trabalho, um conflito)
+    3. Conflito/dilema moral concreto (algo dramático, doloroso)
+    4. Momento de virada espiritual (nem sempre milagre — pode ser uma conversa,
+       uma lembrança da fé, um gesto de perdão)
+    5. Resolução + reflexão final + CTA
+
+    PAUSAS (CRÍTICO — vídeo precisa ficar curto):
+    - NUNCA use [long pause]
+    - Use [short pause] no MÁXIMO 2 vezes em toda a história
+    - Sem pausas dramáticas longas; mantenha o ritmo acelerado
+
+    FORMATAÇÃO PARA ELEVENLABS:
+    - Não use audio tags em colchetes além de [short pause] (no máximo 2)
+    - Use travessões (—) para revelações e momentos de tensão
+    - MAIÚSCULAS pontuais para ênfase (máximo 2 vezes)
+
+    LINGUAGEM:
+    - Português Brasileiro coloquial, acessível, emocional
+    - Sem nomes próprios — use "uma mãe", "um pai", "um homem", "uma mulher"
+    - Sem palavrão, mesmo que leve
+    - Sem jargão teológico (evite "graça santificante", "kenosis", etc.)
+    - Pode dizer "Deus", "Cristo", "Jesus", "Senhor" naturalmente
+
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 4000
+  temperature: 0.85   # menor que o canal de drama — tom mais consistente
+
+# --- Narração (ElevenLabs) ---
+narration:
+  voice_id: "EIkHVdkuarjkYUyMnoes"   # ⚠️ TROCAR
+  model_id: "eleven_multilingual_v2"   # melhor pra português + speed do que eleven_v3
+  speed: 1.20                           # máximo do ElevenLabs sem ficar robótico
+  max_chars_per_call: 4999
+
+# --- Seleção visual (Pexels) ---
+visual:
+  queries:
+    # Cenas contemplativas, espirituais, naturais — combinam com tom reflexivo
+    - "sunset clouds golden hour"
+    - "praying hands close up"
+    - "candle flame slow"
+    - "open bible pages wind"
+    - "church window light"
+    - "mountain peaceful sunrise"
+    - "ocean waves slow motion"
+    - "forest light rays"
+    - "field wheat golden"
+    - "white dove flying slow"
+    - "rosary beads close up"
+    - "wooden cross silhouette"
+    - "rain window reflection"
+    - "person walking sunset silhouette"
+    - "candle church interior"
+  min_clip_seconds: 5
+  max_clip_seconds: 15
+  max_clips_per_query: 2
+  max_pages_per_query: 5
+  per_page: 40
+  recent_backgrounds_limit: 5
+  blocked_keywords:
+    - sexy
+    - sensual
+    - erotic
+    - bikini
+    - lingerie
+    - nude
+    - alcohol
+    - party
+    - drugs
+    - smoking
+    - violence
+
+# --- Montagem do vídeo (FFmpeg) ---
+video:
+  target_width: 1080
+  target_height: 1920
+  fps: 30
+  final_speed_multiplier: 1.10   # leve aceleração pra garantir <3min
+  font_name: "Georgia"            # fonte mais serena e clássica
+  font_size: 76
+  max_words_per_caption: 4        # legendas mais curtas, ritmo contemplativo
+  whisper_model: "small"
+
+# --- Publicação no YouTube ---
+youtube:
+  category_id: "22"        # People & Blogs (também serve "29" Nonprofits & Activism)
+  privacy_status: "public"
+  tags:
+    - "fe"
+    - "deus"
+    - "cristao"
+    - "evangelho"
+    - "amor ao proximo"
+    - "reflexao crista"
+    - "shorts"
+  made_for_kids: false
+  default_language: "pt"
+  default_audio_language: "pt"
+
+# --- Retry ---
+retry:
+  max_attempts_per_step: 3
+  initial_delay: 5.0
+  max_delay: 60.0
+  continue_on_step_failure: false

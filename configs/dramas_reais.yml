@@ -1,0 +1,140 @@
+# Configuração do canal de DRAMAS REAIS (o seu canal atual).
+# Edite este arquivo para ajustar duração, temas, velocidade, etc.
+#
+# As API keys NUNCA ficam aqui — só os NOMES das variáveis de ambiente.
+# Defina as keys no seu .env local ou nos Secrets do GitHub Actions.
+
+channel:
+  name: "dramas_reais"
+  youtube_channel_id: null  # null = usa o canal padrão da conta Google autenticada
+
+# --- Coleta de temas no Reddit ---
+trend:
+  max_posts_per_subreddit: 20
+  recent_trends_limit: 10
+  subreddits:
+    - pillar: "short_suspense"
+      theme: "family"
+      subs: ["raisedbynarcissists", "JUSTNOFAMILY", "FamilyDrama"]
+    - pillar: "short_suspense"
+      theme: "romantic_relationships"
+      subs: ["survivinginfidelity", "relationship_advice"]
+    - pillar: "karma_reversal"
+      theme: "family"
+      subs: ["AmItheAsshole", "BestofRedditorUpdates"]
+    - pillar: "karma_reversal"
+      theme: "romantic_relationships"
+      subs: ["AmItheAsshole", "BestofRedditorUpdates"]
+    - pillar: "sad_stories"
+      theme: "romantic_relationships"
+      subs: ["BreakUps", "heartbreak", "widowers"]
+    - pillar: "secrets_confessions"
+      theme: "everyday_life"
+      subs: ["confession", "offmychest", "TrueOffMyChest"]
+
+# --- Geração de história (Claude) ---
+story:
+  language: "Português Brasileiro"
+  channel_identity: |
+    Histórias curtas, narrativas, em Português Brasileiro COLOQUIAL e POPULAR.
+    Tom direto, emocional, acelerado. Foco em dramas reais do cotidiano.
+  allowed_pillars:
+    - short_suspense
+    - karma_reversal
+    - sad_stories
+    - secrets_confessions
+  allowed_themes:
+    - família
+    - relacionamento
+    - crime
+    - trabalho
+    - negócios
+    - cotidiano
+  forbidden_topics:
+    - Aborto como ato explícito, clínica, método ou remédio
+    - Autoagressão ou suicídio como ato (planejamento, tentativa, método)
+    - Instruções de uso ou obtenção de drogas ilegais
+    - Violência sexual explícita ou estupro
+  duration_target_seconds: 150
+  word_count_min: 300
+  word_count_max: 500
+  include_hook: true
+  cta_text: "Se inscreve aí pra mais histórias como essa."
+  extra_instructions: |
+    Requisitos adicionais:
+    - Sem nomes próprios (use relações: "minha cunhada", "meu chefe", etc.)
+    - Sem palavrão explícito
+    - Hook forte na primeira frase
+    - Turning point claro
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 5000
+  temperature: 0.95
+
+# --- Narração (ElevenLabs) ---
+narration:
+  voice_id: "33B4UnXyTNbgLmdEDh5P"
+  model_id: "eleven_v3"
+  speed: 1.15
+  max_chars_per_call: 4999
+
+# --- Seleção visual (Pexels) ---
+visual:
+  queries:
+    - "paint mixing abstract"
+    - "ink in water abstract"
+    - "macro water drops"
+    - "soap cutting craft"
+    - "kinetic sand craft"
+    - "pottery wheel clay"
+    - "top view cooking pan"
+    - "top view stirring sauce"
+    - "baking dough close up"
+    - "organizing desk objects"
+    - "sorting stationery items"
+    - "cutting vegetables top view"
+  min_clip_seconds: 5
+  max_clip_seconds: 15
+  max_clips_per_query: 2
+  max_pages_per_query: 5
+  per_page: 40
+  recent_backgrounds_limit: 5
+  blocked_keywords:
+    - sexy
+    - sensual
+    - erotic
+    - naked
+    - nude
+    - lingerie
+    - bikini
+    - drugs
+    - alcohol
+
+# --- Montagem do vídeo (FFmpeg) ---
+video:
+  target_width: 1080
+  target_height: 1920
+  fps: 30
+  final_speed_multiplier: 2.0   # acelera o vídeo final em 2x
+  font_name: "Arial"
+  font_size: 80
+  max_words_per_caption: 5
+  whisper_model: "small"
+
+# --- Publicação no YouTube ---
+youtube:
+  category_id: "22"        # People & Blogs
+  privacy_status: "public"  # mesmo com public, YouTube pode travar como private até audit passar
+  tags:
+    - "historias"
+    - "drama"
+    - "shorts"
+  made_for_kids: false
+  default_language: "pt"
+  default_audio_language: "pt"
+
+# --- Retry e controle de falhas ---
+retry:
+  max_attempts_per_step: 3
+  initial_delay: 5.0
+  max_delay: 60.0
+  continue_on_step_failure: false  # se true, tenta seguir mesmo com etapa falhando

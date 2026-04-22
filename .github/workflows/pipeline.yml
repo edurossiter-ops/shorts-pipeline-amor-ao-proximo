@@ -1,0 +1,62 @@
+name: Shorts Pipeline
+
+# Executa o pipeline de geração de shorts em horários agendados.
+# Cada job pode rodar um canal diferente.
+
+on:
+  # Trigger manual (botão "Run workflow" na interface do GitHub)
+  workflow_dispatch:
+    inputs:
+      config:
+        description: "Arquivo de config (ex: configs/dramas_reais.yml)"
+        required: true
+        default: "configs/dramas_reais.yml"
+
+  # Agendamento automático. Horários em UTC (Alemanha = UTC+1 inverno / UTC+2 verão).
+  # Exemplo: 06:00, 12:00, 18:00 hora de Berlim no horário de verão.
+  schedule:
+    - cron: "0 4,10,16 * * *"   # 04,10,16 UTC = 06,12,18 Berlim (verão)
+
+jobs:
+  run-dramas:
+    name: Canal Dramas Reais
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          YOUTUBE_CLIENT_SECRETS_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRETS_JSON }}
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+        run: |
+          CONFIG_FILE="${{ github.event.inputs.config || 'configs/dramas_reais.yml' }}"
+          python -m shorts_pipeline.orchestrator --config "$CONFIG_FILE" --base-dir data
+
+      - name: Upload cycle artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cycle-${{ github.run_id }}
+          path: data/**/pipeline_manifest.json
+          retention-days: 30

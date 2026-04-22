@@ -1,0 +1,80 @@
+# ============================================================
+# CREDENCIAIS — NUNCA COMMITAR
+# ============================================================
+.env
+.env.local
+.env.*.local
+*.env
+
+# YouTube OAuth
+client_secrets.json
+youtube_token.json
+token.json
+
+# Qualquer arquivo que pareça chave
+*secret*
+*_key.*
+*apikey*
+
+# ============================================================
+# Dados gerados pelo pipeline (ciclos, logs, vídeos)
+# ============================================================
+data/
+cycles/
+control/
+*.log
+
+# vídeos e áudios eventualmente soltos na raiz
+*.mp4
+*.mp3
+*.wav
+*.srt
+*.ass
+!configs/**/*.mp4
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testes e cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+ENV/
+
+# ============================================================
+# IDEs e sistema operacional
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

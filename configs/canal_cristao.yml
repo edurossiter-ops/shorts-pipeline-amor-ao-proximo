@@ -1,0 +1,118 @@
+# Configuração do canal CRISTÃO.
+# Este arquivo mostra como o mesmo pipeline gera conteúdo totalmente diferente
+# só mudando a configuração — sem tocar em nenhuma linha de código.
+
+channel:
+  name: "canal_cristao"
+  youtube_channel_id: "UC_COLE_AQUI_O_ID_DO_SEU_CANAL_CRISTAO"
+
+trend:
+  max_posts_per_subreddit: 20
+  recent_trends_limit: 10
+  subreddits:
+    - pillar: "testemunho"
+      theme: "fe"
+      subs: ["Christianity", "TrueChristian", "Catholicism"]
+    - pillar: "superacao"
+      theme: "fe"
+      subs: ["ChristianMysticism", "Christian"]
+    - pillar: "reflexao"
+      theme: "familia"
+      subs: ["ChristianParenting", "Christianity"]
+
+story:
+  language: "Português Brasileiro"
+  channel_identity: |
+    Histórias curtas de fé, superação e transformação em Português Brasileiro.
+    Tom acolhedor, esperançoso, reflexivo. Narrativas que tocam o coração
+    e trazem mensagem de fé, sem ser panfletário nem invasivo.
+  allowed_pillars:
+    - testemunho
+    - superacao
+    - reflexao
+    - milagre
+  allowed_themes:
+    - fe
+    - familia
+    - perdao
+    - gratidao
+    - esperanca
+  forbidden_topics:
+    - Proselitismo agressivo ou ataques a outras religiões
+    - Conteúdo sectário ou teologicamente polêmico
+    - Promessas de cura ou milagre ligados a pagamento
+    - Temas sensíveis (suicídio, aborto, drogas) como ato explícito
+  duration_target_seconds: 180
+  word_count_min: 400
+  word_count_max: 600
+  include_hook: true
+  cta_text: "Se essa mensagem tocou seu coração, deixa um amém e se inscreve no canal."
+  extra_instructions: |
+    - Linguagem acessível, sem jargões teológicos complexos
+    - Evite nomes próprios; use "uma mulher", "um pai", etc.
+    - Sempre termine com uma reflexão ou mensagem de esperança
+    - Nunca cite passagens bíblicas específicas sem confirmação — melhor usar
+      paráfrases como "como diz a escritura..."
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 5000
+  temperature: 0.85
+
+narration:
+  voice_id: "COLE_AQUI_UMA_VOZ_MAIS_CALMA"  # voz mais serena para o nicho
+  model_id: "eleven_v3"
+  speed: 1.0     # sem acelerar, tom mais pausado
+  max_chars_per_call: 4999
+
+visual:
+  queries:
+    - "sunset clouds sky"
+    - "praying hands close up"
+    - "candle flame close up"
+    - "open book pages"
+    - "nature mountain peaceful"
+    - "ocean waves slow"
+    - "forest light rays"
+    - "field wheat sunlight"
+    - "white dove flying"
+    - "church architecture interior"
+  min_clip_seconds: 5
+  max_clip_seconds: 15
+  max_clips_per_query: 2
+  max_pages_per_query: 5
+  per_page: 40
+  recent_backgrounds_limit: 5
+  blocked_keywords:
+    - sexy
+    - sensual
+    - bikini
+    - party
+    - alcohol
+    - drugs
+
+video:
+  target_width: 1080
+  target_height: 1920
+  fps: 30
+  final_speed_multiplier: 1.0   # nicho religioso: sem acelerar, tom contemplativo
+  font_name: "Georgia"           # fonte mais serena
+  font_size: 72
+  max_words_per_caption: 4
+  whisper_model: "small"
+
+youtube:
+  category_id: "22"
+  privacy_status: "public"
+  tags:
+    - "fe"
+    - "reflexao"
+    - "cristao"
+    - "shorts"
+  made_for_kids: false
+  default_language: "pt"
+  default_audio_language: "pt"
+
+retry:
+  max_attempts_per_step: 3
+  initial_delay: 5.0
+  max_delay: 60.0
+  continue_on_step_failure: false
