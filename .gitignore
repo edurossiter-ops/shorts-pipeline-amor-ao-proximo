@@ -31,6 +31,10 @@ control/
 *.srt
 *.ass
 !configs/**/*.mp4
+# Fixtures de teste SÃO commitáveis
+!tests/fixtures/*.mp3
+!tests/fixtures/*.mp4
+!tests/fixtures/*.wav
 
 # ============================================================
 # Python
