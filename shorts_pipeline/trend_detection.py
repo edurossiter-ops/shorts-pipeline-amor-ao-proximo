@@ -28,7 +28,7 @@ from .utils import (
 )
 
 
-USER_AGENT = "story-pipeline-trend-detection/5.0 by edurossiter-ops"
+USER_AGENT = "story-pipeline-trend-detection/5.0 (by /u/Physical-Savings-353)"
 HEADERS = {"User-Agent": USER_AGENT}
 
 
@@ -142,7 +142,14 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
                     continue
                 try:
                     json_data = _fetch_post_json(post_url)
-                except (TransientError, PermanentError) as exc:
+                except TransientError as exc:
+                    # 429/5xx — pausa longa antes do próximo post pra evitar cascata
+                    logger.warning(f"Skip post {post_url}: {exc}")
+                    if "429" in str(exc):
+                        logger.info("Rate limit detectado, pausando 15s antes de continuar...")
+                        time.sleep(15.0)
+                    continue
+                except PermanentError as exc:
                     logger.warning(f"Skip post {post_url}: {exc}")
                     continue
                 story = _extract_story(json_data)
@@ -159,7 +166,8 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
                 )
                 story["one_line_summary"] = _build_one_line_summary(story)
                 candidates.append(story)
-                time.sleep(0.5)
+                # Pausa maior entre posts pra evitar rate limit (429) em IP de servidor
+                time.sleep(2.0)
 
     if not candidates:
         raise TransientError(
