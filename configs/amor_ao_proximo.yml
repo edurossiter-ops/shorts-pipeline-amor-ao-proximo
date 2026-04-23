@@ -81,74 +81,28 @@ story:
 
   duration_target_seconds: 180   # alvo da NARRAÇÃO crua (será acelerada em 1.10x)
   word_count_min: 420
-  word_count_max: 480
+  word_count_max: 450
   include_hook: true
 
   cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se inscreve no canal Amor ao Próximo pro seu versículo diário."
 
   extra_instructions: |
-    REGRAS DURAS (siga à risca):
-    - O VERSÍCULO DETERMINA O DILEMA. Não é decoração, não é inspiração vaga.
-      É a lei editorial do vídeo. Se o versículo fala de trabalho → o dilema é
-      sobre trabalho. Se fala de família → família. Se fala de disciplina → disciplina.
-      Você não tem liberdade de escolher o dilema — ele já foi escolhido pelo versículo.
-    - NUNCA cite o versículo literalmente no corpo da reflexão. Ele aparece
-      APENAS no CTA final, na fórmula: "A reflexão de hoje foi inspirada em [ref]."
-    - O CTA final deve usar EXATAMENTE a fórmula do cta_text, substituindo
-      {versiculo_ref} pela referência real (ex: "Hebreus 12:5-7").
+    REGRAS:
+    1. O VERSÍCULO DO INPUT determina o dilema. Trabalho → fale de trabalho.
+       Família → família. Disciplina → disciplina. Não invente outro tema.
+    2. Primeira frase: use LITERAL o "gancho_escolhido" do input.
+    3. Fale em segunda pessoa ("você") diretamente com quem ouve.
+    4. Mencione Jesus/Cristo explicitamente. A resposta é sempre Cristo.
+    5. NUNCA cite o versículo no texto — ele aparece só no CTA final.
+    6. NUNCA use tags em colchetes — o modelo de voz lê literalmente.
+    7. Última frase: exatamente o CTA fornecido.
 
-    COMO LER O VERSÍCULO PRA DETERMINAR O DILEMA:
-    Antes de escrever qualquer coisa, responda mentalmente:
-    1. Qual situação concreta da vida esse versículo está falando?
-       (trabalho, família, medo, solidão, disciplina, fé fraca, etc.)
-    2. Qual é a tensão humana real nessa situação?
-       (o que a pessoa está sentindo que torna isso difícil?)
-    3. O que Jesus/Deus oferece como saída?
-    Só depois de responder os 3, comece a escrever.
+    ESTRUTURA:
+    Gancho → Dilema específico do versículo → Desenvolver a dor →
+    Perspectiva de Cristo → Oração (4-6 linhas) → CTA
 
-    GANCHO INICIAL (primeira frase, OBRIGATÓRIO):
-    Use o gancho que foi sorteado no input da etapa (campo "gancho_escolhido").
-    NÃO invente outro. NÃO modifique o gancho — use literal na primeira frase.
-
-    ESTRUTURA DA REFLEXÃO (em 6 partes, fluindo natural):
-    1. Gancho (primeira frase — o gancho sorteado, literal)
-    2. Nomear o dilema ESPECÍFICO determinado pelo versículo
-       (não genérico — nomeie a situação real: o chefe injusto, o filho que sumiu,
-       a oração sem resposta, o medo de não ser suficiente, etc.)
-    3. Desenvolver a dor/dúvida: validar o sentimento, mostrar que é universal
-    4. Ancorar em Cristo: o que Jesus ensina sobre ESSE dilema específico.
-       Use o versículo como bússola, SEM citá-lo no corpo.
-    5. Oração curta (4-6 linhas) falando com Deus EM NOME de quem ouve
-    6. CTA: "A reflexão de hoje foi inspirada em [ref]. Se inscreve no canal
-       Amor ao Próximo pro seu versículo diário."
-
-    VARIEDADE OBRIGATÓRIA:
-    - NUNCA escreva sobre culpa/perdão se o versículo não falar disso.
-    - Se o versículo é sobre trabalho, o vídeo é sobre trabalho.
-    - Se o versículo é sobre família, o vídeo é sobre família.
-    - Autoajuda genérica ("acredite em você") sem âncora cristã é proibida.
-
-    PESSOA E VOZ:
-    - Sempre em SEGUNDA PESSOA: "você", "pra você", "quantas vezes você..."
-    - NUNCA em terceira pessoa ("havia uma mulher que...", "João sentia...")
-    - Fale DIRETO com a pessoa, como se estivesse ao lado dela
-
-    TOM CRISTÃO EXPLÍCITO:
-    - Mencionar Jesus/Cristo por nome, frequentemente
-    - Usar "Deus", "Senhor", "Pai" naturalmente
-    - A resposta é sempre Cristo — não "positividade" ou "resiliência"
-
-    PAUSAS E RITMO:
-    - NUNCA use audio tags em colchetes (tipo [short pause], [pause], etc.)
-      O modelo de voz LÊ LITERALMENTE o texto entre colchetes.
-    - Use pontuação natural: vírgula, ponto, travessão (—).
-    - MAIÚSCULAS pontuais pra ênfase (máximo 2 vezes em toda a reflexão).
-
-    LINGUAGEM:
-    - Português Brasileiro coloquial, acessível, emocional.
-    - Sem palavrão.
-    - Sem jargão teológico ("graça santificante", "kenosis", "justificação").
-    - Sem frases de bolacha evangélica. Sempre desenvolver a ideia.
+    PROIBIDO: narrativa em terceira pessoa, jargão teológico,
+    teologia da prosperidade, autoajuda genérica sem Cristo.
 
   model: "claude-sonnet-4-20250514"
   max_tokens: 4000
@@ -204,7 +158,7 @@ video:
   target_width: 1080
   target_height: 1920
   fps: 30
-  final_speed_multiplier: 1.10   # leve aceleração pra garantir <3min
+  final_speed_multiplier: 1.0    # sem aceleração — vídeo fica ~2min 20s com 420 palavras
   font_name: "Georgia"            # fonte mais serena e clássica
   font_size: 76
   max_words_per_caption: 4        # legendas mais curtas, ritmo contemplativo
