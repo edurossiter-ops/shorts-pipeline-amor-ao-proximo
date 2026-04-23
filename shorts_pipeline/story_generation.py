@@ -133,6 +133,10 @@ está falando direto com ela sobre algo que ela vive.
 
 REFLEXÕES RECENTES A EVITAR (não repita temas/títulos parecidos):
 {_build_recent_profiles_text(recent_profiles)}
+
+⚠️ OBRIGATÓRIO: a reflexão final (bloco reflexao_text_formatted) deve ter
+ENTRE 420 E 450 PALAVRAS. Conte antes de fechar. Se tiver menos de 420,
+desenvolva mais a dor ou a perspectiva de Cristo. Se passar de 450, corte.
 """.strip()
 
 
