@@ -126,17 +126,16 @@ TEMA/ÂNGULO da reflexão (foco principal):
 GANCHO DE ABERTURA (use LITERAL na primeira frase):
 "{gancho}"
 
-Use o versículo como bússola interna do que refletir, mas NUNCA o cite, NUNCA o
-parafraseie de forma reconhecível. A pessoa que ouvir não deve saber que a
-reflexão partiu de um versículo específico — ela deve apenas sentir que você
-está falando direto com ela sobre algo que ela vive.
+Use o versículo como bússola interna do que refletir, descrevendo uma situacao semelhante ao cerne do versiculo, mas NUNCA o cite, 
+NUNCA o parafraseie de forma reconhecível. A pessoa que ouvir não deve saber que a reflexão partiu de um versículo 
+específico — ela deve apenas sentir que você está falando direto com ela sobre algo que ela vive.
 
 REFLEXÕES RECENTES A EVITAR (não repita temas/títulos parecidos):
 {_build_recent_profiles_text(recent_profiles)}
 
 ⚠️ OBRIGATÓRIO: a reflexão final (bloco reflexao_text_formatted) deve ter
-ENTRE 420 E 450 PALAVRAS. Conte antes de fechar. Se tiver menos de 420,
-desenvolva mais a dor ou a perspectiva de Cristo. Se passar de 450, corte.
+ENTRE 470 E 520 PALAVRAS. Conte antes de fechar. Se tiver menos de 470,
+desenvolva mais a dor ou a perspectiva de Cristo. Se passar de 520, corte.
 """.strip()
 
 
