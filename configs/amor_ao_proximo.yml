@@ -16,21 +16,23 @@ channel:
 # --- Fonte de tema: versículos bíblicos ---
 bible:
   versiculos_file: "configs/versiculos.json"
-  # Lista de ganchos de abertura. O pipeline sorteia um por vídeo, evitando
-  # repetir os usados nos últimos N (ver recent_hooks_avoid).
-  # Estilos usados: A (mensagem direta), B (providência), C (pergunta reflexiva).
+  # Lista de ganchos de abertura — todos mencionam Deus ou Jesus explicitamente
+  # pra sinalizar imediatamente que é conteúdo cristão.
+  # Categoria 1 (sutis): curiosidade + Deus
+  # Categoria 2 (diretos): cristão explícito desde a primeira frase
   ganchos:
-    # Estilo A — Mensagem direta de Deus
-    - "Deus tem uma mensagem pra você hoje..."
-    - "Hoje Deus quer te dizer uma coisa importante..."
-    # Estilo B — Providência / encontro não casual
-    - "Talvez Deus tenha colocado este vídeo no seu caminho por um motivo..."
-    - "Existe uma razão pra você estar ouvindo isso agora..."
+    # Categoria 1 — Curiosidade + Deus (mais sutil)
+    - "E se o que você está passando tivesse um propósito maior nas mãos de Deus?"
+    - "Talvez Jesus tenha colocado este vídeo no seu caminho por um motivo..."
+    - "Quantas vezes você já pediu um sinal a Deus sem receber resposta?"
+    - "Existe uma razão pra você estar ouvindo isso agora — e Deus sabe qual é..."
     - "Esta reflexão talvez seja a resposta que você pediu em oração..."
-    # Estilo C — Pergunta que provoca reflexão
-    - "Você já se pegou pensando por que algumas dores não vão embora?"
-    - "E se o que você está passando tivesse um propósito maior?"
-    - "Quantas vezes você já pediu um sinal sem receber resposta?"
+    # Categoria 2 — Direto e cristão (explícito)
+    - "Jesus tem algo pra te dizer sobre essa fase que você está vivendo..."
+    - "Deus não desperdiça nenhuma dor na sua vida — e eu vou te mostrar por quê..."
+    - "Você já se perguntou por que Deus permite que coisas difíceis aconteçam com quem Ele ama?"
+    - "Hoje Deus quer te dizer uma coisa importante sobre o que você está vivendo..."
+    - "Deus tem uma mensagem pra você hoje — e ela vai mudar como você vê essa situação..."
   recent_hooks_avoid: 5
 
 # --- Geração da reflexão (Claude) ---
@@ -82,54 +84,71 @@ story:
   word_count_max: 480
   include_hook: true
 
-  cta_text: "Se essa mensagem tocou seu coração, deixa um amém aqui embaixo e se inscreve no canal Amor ao Próximo pra mais reflexões que falam direto com a sua fé."
+  cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se inscreve no canal Amor ao Próximo pro seu versículo diário."
 
   extra_instructions: |
     REGRAS DURAS (siga à risca):
-    - NUNCA cite o versículo literalmente. Ele é SEED INTERNO, sua bússola
-      temática. A pessoa não precisa reconhecer que partiu de um versículo.
+    - O VERSÍCULO DETERMINA O DILEMA. Não é decoração, não é inspiração vaga.
+      É a lei editorial do vídeo. Se o versículo fala de trabalho → o dilema é
+      sobre trabalho. Se fala de família → família. Se fala de disciplina → disciplina.
+      Você não tem liberdade de escolher o dilema — ele já foi escolhido pelo versículo.
+    - NUNCA cite o versículo literalmente no corpo da reflexão. Ele aparece
+      APENAS no CTA final, na fórmula: "A reflexão de hoje foi inspirada em [ref]."
+    - O CTA final deve usar EXATAMENTE a fórmula do cta_text, substituindo
+      {versiculo_ref} pela referência real (ex: "Hebreus 12:5-7").
+
+    COMO LER O VERSÍCULO PRA DETERMINAR O DILEMA:
+    Antes de escrever qualquer coisa, responda mentalmente:
+    1. Qual situação concreta da vida esse versículo está falando?
+       (trabalho, família, medo, solidão, disciplina, fé fraca, etc.)
+    2. Qual é a tensão humana real nessa situação?
+       (o que a pessoa está sentindo que torna isso difícil?)
+    3. O que Jesus/Deus oferece como saída?
+    Só depois de responder os 3, comece a escrever.
 
     GANCHO INICIAL (primeira frase, OBRIGATÓRIO):
     Use o gancho que foi sorteado no input da etapa (campo "gancho_escolhido").
     NÃO invente outro. NÃO modifique o gancho — use literal na primeira frase.
 
     ESTRUTURA DA REFLEXÃO (em 6 partes, fluindo natural):
-    1. Gancho (primeira frase — o gancho sorteado)
-    2. Nomear o dilema: uma pergunta ou situação que a pessoa já viveu
-       (ex: "Quantas vezes você já perdoou alguém e se sentiu um idiota depois?")
+    1. Gancho (primeira frase — o gancho sorteado, literal)
+    2. Nomear o dilema ESPECÍFICO determinado pelo versículo
+       (não genérico — nomeie a situação real: o chefe injusto, o filho que sumiu,
+       a oração sem resposta, o medo de não ser suficiente, etc.)
     3. Desenvolver a dor/dúvida: validar o sentimento, mostrar que é universal
-    4. Ancorar em Cristo: trazer a perspectiva de Jesus sobre isso (o que Ele
-       ensinou, como Ele viveu, o que Ele prometeu). Use o versículo-seed como
-       bússola temática, SEM citá-lo. Mencionar Jesus/Cristo explicitamente.
-    5. Oração curta (4-6 linhas) falando com Deus EM NOME de quem ouve, tipo
-       "Senhor, te agradeço por quem está ouvindo isso agora. Que você toque..."
-    6. CTA final (use o cta_text como base, pode adaptar 1-2 palavras)
+    4. Ancorar em Cristo: o que Jesus ensina sobre ESSE dilema específico.
+       Use o versículo como bússola, SEM citá-lo no corpo.
+    5. Oração curta (4-6 linhas) falando com Deus EM NOME de quem ouve
+    6. CTA: "A reflexão de hoje foi inspirada em [ref]. Se inscreve no canal
+       Amor ao Próximo pro seu versículo diário."
+
+    VARIEDADE OBRIGATÓRIA:
+    - NUNCA escreva sobre culpa/perdão se o versículo não falar disso.
+    - Se o versículo é sobre trabalho, o vídeo é sobre trabalho.
+    - Se o versículo é sobre família, o vídeo é sobre família.
+    - Autoajuda genérica ("acredite em você") sem âncora cristã é proibida.
 
     PESSOA E VOZ:
     - Sempre em SEGUNDA PESSOA: "você", "pra você", "quantas vezes você..."
     - NUNCA em terceira pessoa ("havia uma mulher que...", "João sentia...")
-    - NUNCA em primeira pessoa plural forçada ("nós todos sabemos...")
     - Fale DIRETO com a pessoa, como se estivesse ao lado dela
 
     TOM CRISTÃO EXPLÍCITO:
     - Mencionar Jesus/Cristo por nome, frequentemente
     - Usar "Deus", "Senhor", "Pai" naturalmente
-    - A resposta é sempre Cristo — não apenas "positividade" ou "resiliência"
-    - Evite virar autoajuda genérica
+    - A resposta é sempre Cristo — não "positividade" ou "resiliência"
 
     PAUSAS E RITMO:
     - NUNCA use audio tags em colchetes (tipo [short pause], [pause], etc.)
       O modelo de voz LÊ LITERALMENTE o texto entre colchetes.
-    - Use pontuação natural pra pausas: vírgula, ponto, travessão (—).
+    - Use pontuação natural: vírgula, ponto, travessão (—).
     - MAIÚSCULAS pontuais pra ênfase (máximo 2 vezes em toda a reflexão).
 
     LINGUAGEM:
     - Português Brasileiro coloquial, acessível, emocional.
     - Sem palavrão.
-    - Sem jargão teológico (evite "graça santificante", "kenosis", "justificação",
-      "santificação progressiva", etc.).
-    - Sem "jargão evangélico genérico" ("Deus tem um propósito maior" dito seco
-      como frase de bolacha). Sempre desenvolver a ideia.
+    - Sem jargão teológico ("graça santificante", "kenosis", "justificação").
+    - Sem frases de bolacha evangélica. Sempre desenvolver a ideia.
 
   model: "claude-sonnet-4-20250514"
   max_tokens: 4000

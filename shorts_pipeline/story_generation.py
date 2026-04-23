@@ -38,9 +38,10 @@ ANTHROPIC_VERSION = "2023-06-01"
 RECENT_PROFILES_LIMIT = 10
 
 
-def _build_system_prompt(config: PipelineConfig) -> str:
+def _build_system_prompt(config: PipelineConfig, versiculo_ref: str = "") -> str:
     """
     Monta o system prompt para reflexão cristã a partir da config do canal.
+    Recebe versiculo_ref pra substituir o placeholder {versiculo_ref} no cta_text.
     """
     s = config.story
     forbidden_str = (
@@ -49,70 +50,39 @@ def _build_system_prompt(config: PipelineConfig) -> str:
         else "- (nenhum)"
     )
 
-    return f"""
-Você é um redator cristão especializado em reflexões curtas para YouTube Shorts.
-Sua tarefa é produzir uma REFLEXÃO em {s.language}, já formatada para Text-to-Speech.
+    # Substitui placeholder {versiculo_ref} no CTA com a referência real
+    cta_text_resolved = s.cta_text.replace("{versiculo_ref}", versiculo_ref)
 
-IDENTIDADE DO CANAL:
-{s.channel_identity}
+    header = (
+        f"Você é um redator cristão especializado em reflexões curtas para YouTube Shorts.\n"
+        f"Sua tarefa é produzir uma REFLEXÃO em {s.language}, já formatada para Text-to-Speech.\n"
+        f"\nIDENTIDADE DO CANAL:\n{s.channel_identity}\n"
+        f"\nREQUISITOS DE ESTRUTURA:\n"
+        f"- Duração-alvo da narração: ~{s.duration_target_seconds} segundos\n"
+        f"- Contagem de palavras: ENTRE {s.word_count_min} e {s.word_count_max} palavras.\n"
+        f"  Conte antes de fechar. Se passar, corte frases do meio.\n"
+        f"- Primeira frase: use LITERAL o \"gancho_escolhido\" fornecido no input.\n"
+        f"- Última frase: use o CTA configurado: \"{cta_text_resolved}\"\n"
+        f"\nTEMAS PROIBIDOS (nunca mencionar):\n{forbidden_str}\n"
+        f"\n{s.extra_instructions}\n"
+    )
 
-REQUISITOS DE ESTRUTURA:
-- Duração-alvo da narração: ~{s.duration_target_seconds} segundos
-- Contagem de palavras: ENTRE {s.word_count_min} e {s.word_count_max} palavras.
-  Conte antes de fechar. Se passar, corte frases do meio.
-- Primeira frase: use LITERAL o "gancho_escolhido" fornecido no input.
-- Última frase: use o CTA configurado: "{s.cta_text}"
-
-TEMAS PROIBIDOS (nunca mencionar):
-{forbidden_str}
-
-{s.extra_instructions}
-
+    footer = """
 FORMATO DE SAÍDA (EXATAMENTE ESTES 3 BLOCOS, NESTA ORDEM):
 
 <editorial_brief_json>
-{{...json válido...}}
+{...json válido...}
 </editorial_brief_json>
 
 <story_package_json>
-{{...json válido...}}
+{...json válido...}
 </story_package_json>
 
 <reflexao_text_formatted>
-...texto final em {s.language} pronto para narração...
-</reflexao_text_formatted>
+...texto final pronto para narração...
+</reflexao_text_formatted>"""
 
-1. editorial_brief_json deve conter:
-{{
-  "versiculo_ref": "... (o ref do versículo recebido no input)",
-  "tema": "... (o tema_escolhido do input)",
-  "gancho_usado": "... (o gancho_escolhido literal)",
-  "target_audience": "... (quem é a pessoa que provavelmente vai ouvir)",
-  "dilema_abordado": "... (qual dilema concreto da vida você está tratando)",
-  "tom": "... (acolhedor / confrontador / consolador / etc)",
-  "outline": {{
-    "gancho": "...",
-    "dilema_nomeado": "...",
-    "validacao_da_dor": "...",
-    "perspectiva_crista": "...",
-    "oracao": "...",
-    "cta_final": "..."
-  }}
-}}
-
-2. story_package_json deve conter:
-{{
-  "status": "generated",
-  "versiculo_ref": "...",
-  "tema": "...",
-  "emotional_pov": "... (ex: esperança, consolo, conforto, coragem)",
-  "title_hint": "... título curto, 5-8 palavras, SEM ponto final",
-  "cta": "... texto do CTA final"
-}}
-
-3. reflexao_text_formatted contém APENAS o texto final em {s.language} pronto
-para narração. A primeira frase é o gancho sorteado. A última frase é o CTA.
-""".strip()
+    return header + footer
 
 
 def _build_recent_profiles_text(items: List[Dict[str, Any]]) -> str:
@@ -183,7 +153,7 @@ def _call_claude(
         "model": config.story.model,
         "max_tokens": config.story.max_tokens,
         "temperature": config.story.temperature,
-        "system": _build_system_prompt(config),
+        "system": _build_system_prompt(config, topic_candidate.get("versiculo_ref", "")),
         "messages": [
             {"role": "user", "content": _build_user_prompt(topic_candidate, recent_profiles)}
         ],
