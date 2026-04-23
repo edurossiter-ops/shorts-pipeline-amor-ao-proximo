@@ -111,33 +111,61 @@ def _build_user_prompt(
     tema = topic.get("tema_escolhido", "")
     gancho = topic.get("gancho_escolhido", "")
     categoria = topic.get("categoria", "")
+    recent_profiles_text = _build_recent_profiles_text(recent_profiles)
 
     return f"""
-Escreva uma reflexão cristã usando os seguintes elementos:
+prompt = f"""
+Escreva uma reflexão cristã profundamente conectada ao VERSÍCULO-SEED abaixo, mas sem citar o versículo, sem mencionar a referência e sem parafrasear frases reconhecíveis.
 
-VERSÍCULO-SEED (bússola temática — NÃO cite, NÃO parafraseie literalmente):
+VERSÍCULO-SEED (bússola interna — uso invisível):
 Referência: {versiculo_ref}
 Texto: "{versiculo_texto}"
 Categoria: {categoria}
 
-TEMA/ÂNGULO da reflexão (foco principal):
+TEMA/ÂNGULO da reflexão:
 {tema}
 
 GANCHO DE ABERTURA (use LITERAL na primeira frase):
 "{gancho}"
 
-Use o versículo como bússola interna do que refletir, descrevendo uma situacao semelhante ao cerne do versiculo, mas NUNCA o cite, 
-NUNCA o parafraseie de forma reconhecível. A pessoa que ouvir não deve saber que a reflexão partiu de um versículo 
-específico — ela deve apenas sentir que você está falando direto com ela sobre algo que ela vive.
+INSTRUÇÃO CENTRAL:
+Use o versículo como matriz invisível da reflexão. Não escreva apenas sobre o mesmo tema geral; escreva sobre a mesma ferida, a mesma tensão espiritual, o mesmo conflito humano e o mesmo tipo de resposta que existem no versículo.
 
-REFLEXÕES RECENTES A EVITAR (não repita temas/títulos parecidos):
-{_build_recent_profiles_text(recent_profiles)}
+A reflexão deve parecer uma fala pastoral direta para alguém que está vivendo hoje o equivalente emocional e espiritual do que o versículo revela.
 
-⚠️ OBRIGATÓRIO: a reflexão final (bloco reflexao_text_formatted) deve ter
-ENTRE 450 E 470 PALAVRAS. Conte antes de fechar. Se tiver menos de 450,
-desenvolva mais a dor ou a perspectiva de Cristo. Se passar de 470, corte.
+OBJETIVO DE CONEXÃO:
+Quando alguém ouvir a reflexão e depois ler o versículo original, deve perceber uma conexão direta, clara e inevitável entre os dois — não por repetição de palavras, mas porque ambos tratam da mesma experiência central diante de Deus.
+
+REGRAS DE CONSTRUÇÃO:
+- Primeiro, identifique internamente o núcleo do versículo: o que ele expõe no coração humano, que crise ele revela, que movimento ele pede, e como Cristo responde a isso.
+- Depois, transforme esse núcleo em linguagem pastoral, concreta e íntima, aplicada à vida real de hoje.
+- Descreva cenas internas e situações humanas que correspondam diretamente ao centro do versículo.
+- Evite generalidades como “Deus está com você”, “continue firme”, “tenha fé”, a menos que isso surja organicamente da tensão específica do versículo.
+- Não produza uma mensagem motivacional genérica.
+- Não explique o versículo.
+- Não cite o versículo.
+- Não use expressões reconhecivelmente próximas do texto bíblico.
+- Não entregue uma reflexão apenas temática; entregue uma reflexão estruturalmente alinhada ao versículo.
+
+PERSPECTIVA CRISTOCÊNTRICA:
+A reflexão deve carregar a verdade, a compaixão, a confrontação e a esperança de Cristo. Se houver dor, mostre como Cristo a enxerga. Se houver pecado, mostre como Cristo o expõe. Se houver medo, mostre como Cristo o atravessa. Se houver espera, mostre como Cristo a sustenta.
+
+REFLEXÕES RECENTES A EVITAR (não repetir temas, imagens, conflitos ou títulos parecidos):
+{recent_profiles_text}
+
+TESTE DE VALIDAÇÃO INTERNA:
+Antes de finalizar, verifique silenciosamente:
+1. Esta reflexão poderia ter sido usada para muitos outros versículos da mesma categoria?
+2. Se sim, ela ainda está genérica e deve ser reescrita.
+3. Ela só pode funcionar bem para este versículo-seed e para poucos versículos muito próximos em núcleo?
+4. Se sim, o nível de conexão está correto.
+
+⚠️ OBRIGATÓRIO:
+A reflexão final (bloco reflexao_text_formatted) deve ter ENTRE 450 E 470 PALAVRAS.
+Conte antes de fechar.
+Se tiver menos de 450, aprofunde a dor, a luta interna ou a resposta de Cristo.
+Se passar de 470, corte excessos.
 """.strip()
-
 
 def _call_claude(
     config: PipelineConfig,
