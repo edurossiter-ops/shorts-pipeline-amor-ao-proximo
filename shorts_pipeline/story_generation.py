@@ -114,10 +114,9 @@ def _build_user_prompt(
     recent_profiles_text = _build_recent_profiles_text(recent_profiles)
 
     return f"""
-prompt = f"""
 Escreva uma reflexão cristã profundamente conectada ao VERSÍCULO-SEED abaixo, mas sem citar o versículo, sem mencionar a referência e sem parafrasear frases reconhecíveis.
 
-VERSÍCULO-SEED (bússola interna — uso invisível):
+VERSÍCULO-SEED (bússola interna - uso invisível):
 Referência: {versiculo_ref}
 Texto: "{versiculo_texto}"
 Categoria: {categoria}
@@ -134,13 +133,13 @@ Use o versículo como matriz invisível da reflexão. Não escreva apenas sobre 
 A reflexão deve parecer uma fala pastoral direta para alguém que está vivendo hoje o equivalente emocional e espiritual do que o versículo revela.
 
 OBJETIVO DE CONEXÃO:
-Quando alguém ouvir a reflexão e depois ler o versículo original, deve perceber uma conexão direta, clara e inevitável entre os dois — não por repetição de palavras, mas porque ambos tratam da mesma experiência central diante de Deus.
+Quando alguém ouvir a reflexão e depois ler o versículo original, deve perceber uma conexão direta, clara e inevitável entre os dois - não por repetição de palavras, mas porque ambos tratam da mesma experiência central diante de Deus.
 
 REGRAS DE CONSTRUÇÃO:
 - Primeiro, identifique internamente o núcleo do versículo: o que ele expõe no coração humano, que crise ele revela, que movimento ele pede, e como Cristo responde a isso.
 - Depois, transforme esse núcleo em linguagem pastoral, concreta e íntima, aplicada à vida real de hoje.
 - Descreva cenas internas e situações humanas que correspondam diretamente ao centro do versículo.
-- Evite generalidades como “Deus está com você”, “continue firme”, “tenha fé”, a menos que isso surja organicamente da tensão específica do versículo.
+- Evite generalidades como "Deus está com você", "continue firme", "tenha fé", a menos que isso surja organicamente da tensão específica do versículo.
 - Não produza uma mensagem motivacional genérica.
 - Não explique o versículo.
 - Não cite o versículo.
@@ -166,7 +165,7 @@ Conte antes de fechar.
 Se tiver menos de 450, aprofunde a dor, a luta interna ou a resposta de Cristo.
 Se passar de 470, corte excessos.
 """.strip()
-
+    
 def _call_claude(
     config: PipelineConfig,
     topic_candidate: Dict[str, Any],
