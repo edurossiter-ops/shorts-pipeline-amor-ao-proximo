@@ -93,46 +93,46 @@ jobs:
           path: data/**/pipeline_manifest.json
           retention-days: 30
 
-     name: CI com Notificação no Telegram
+        name: CI com Notificação no Telegram
 
-on:
-  push:
-    branches: [ "main" ]
-
-jobs:
-  build-and-test:
-    name: Build e Testes
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      # ... seus passos de build, npm install, testes, etc ...
-      - name: Simular um erro (apenas para testar)
-        run: exit 1
-
-  # ─────────────────────────────────────────────────────────────
-  # Job de notificação: só roda se o job anterior FALHAR
-  # ─────────────────────────────────────────────────────────────
-  notify-telegram:
-    name: Notificar Falha no Telegram
-    runs-on: ubuntu-latest
-    needs: build-and-test          # depende do job acima
-    if: failure()                  # ← A MÁGICA ACONTECE AQUI
-
-    steps:
-      - name: Enviar mensagem no Telegram
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          message: |
-            🚨 *FALHA NO WORKFLOW*
-
-            📦 *Repositório:* `${{ github.repository }}`
-            🌿 *Branch:* `${{ github.ref_name }}`
-            👤 *Autor do commit:* `${{ github.actor }}`
-            💬 *Mensagem do commit:* ${{ github.event.head_commit.message }}
-            🔗 *Ver detalhes:* [Clique aqui](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})  
+            on:
+              push:
+                branches: [ "main" ]
+            
+            jobs:
+              build-and-test:
+                name: Build e Testes
+                runs-on: ubuntu-latest
+            
+                steps:
+                  - name: Checkout do código
+                    uses: actions/checkout@v4
+            
+                  # ... seus passos de build, npm install, testes, etc ...
+                  - name: Simular um erro (apenas para testar)
+                    run: exit 1
+            
+              # ─────────────────────────────────────────────────────────────
+              # Job de notificação: só roda se o job anterior FALHAR
+              # ─────────────────────────────────────────────────────────────
+              notify-telegram:
+                name: Notificar Falha no Telegram
+                runs-on: ubuntu-latest
+                needs: build-and-test          # depende do job acima
+                if: failure()                  # ← A MÁGICA ACONTECE AQUI
+            
+                steps:
+                  - name: Enviar mensagem no Telegram
+                    uses: appleboy/telegram-action@master
+                    with:
+                      to: ${{ secrets.TELEGRAM_CHAT_ID }}
+                      token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+                      format: markdown
+                      message: |
+                        🚨 *FALHA NO WORKFLOW*
+            
+                        📦 *Repositório:* `${{ github.repository }}`
+                        🌿 *Branch:* `${{ github.ref_name }}`
+                        👤 *Autor do commit:* `${{ github.actor }}`
+                        💬 *Mensagem do commit:* ${{ github.event.head_commit.message }}
+                        🔗 *Ver detalhes:* [Clique aqui](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})  
