@@ -22,175 +22,335 @@
       "ref": "João 3:16",
       "texto": "Porque Deus tanto amou o mundo que deu o seu Filho Unigênito, para que todo o que nele crer não pereça, mas tenha a vida eterna.",
       "categoria": "amor_compaixao",
-      "temas": ["amor de Deus", "salvação", "sacrifício", "esperança eterna"]
+      "temas": [
+        "amor de Deus",
+        "salvação",
+        "sacrifício",
+        "esperança eterna"
+      ]
     },
     {
       "id": "1corintios_13_4",
       "ref": "1 Coríntios 13:4-7",
       "texto": "O amor é paciente, o amor é bondoso. Não inveja, não se vangloria, não se orgulha. Não maltrata, não procura seus interesses, não se ira facilmente, não guarda rancor.",
       "categoria": "amor_compaixao",
-      "temas": ["amor verdadeiro", "paciência", "relacionamentos", "caráter"]
+      "temas": [
+        "amor verdadeiro",
+        "paciência",
+        "relacionamentos",
+        "caráter"
+      ]
     },
     {
       "id": "filipenses_4_13",
       "ref": "Filipenses 4:13",
       "texto": "Tudo posso naquele que me fortalece.",
       "categoria": "fe_confianca",
-      "temas": ["força em Cristo", "perseverança", "superação", "dependência de Deus"]
+      "temas": [
+        "força em Cristo",
+        "perseverança",
+        "superação",
+        "dependência de Deus"
+      ]
     },
     {
       "id": "proverbios_3_5",
       "ref": "Provérbios 3:5-6",
       "texto": "Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento; reconheça o Senhor em todos os seus caminhos, e ele endireitará as suas veredas.",
       "categoria": "fe_confianca",
-      "temas": ["confiança em Deus", "humildade intelectual", "direção", "decisões"]
+      "temas": [
+        "confiança em Deus",
+        "humildade intelectual",
+        "direção",
+        "decisões"
+      ]
     },
     {
       "id": "jeremias_29_11",
       "ref": "Jeremias 29:11",
       "texto": "Porque sou eu que conheço os planos que tenho para vocês, diz o Senhor, planos de fazê-los prosperar e não de causar dano, planos de dar a vocês esperança e um futuro.",
       "categoria": "esperanca_promessas",
-      "temas": ["planos de Deus", "futuro", "esperança", "propósito"]
+      "temas": [
+        "planos de Deus",
+        "futuro",
+        "esperança",
+        "propósito"
+      ]
     },
     {
       "id": "mateus_6_33",
       "ref": "Mateus 6:33",
       "texto": "Busquem, pois, em primeiro lugar o Reino de Deus e a sua justiça, e todas essas coisas lhes serão acrescentadas.",
       "categoria": "fe_confianca",
-      "temas": ["prioridades", "Reino", "provisão", "ordem de vida"]
+      "temas": [
+        "prioridades",
+        "Reino",
+        "provisão",
+        "ordem de vida"
+      ]
     },
     {
       "id": "filipenses_4_6",
       "ref": "Filipenses 4:6-7",
       "texto": "Não andem ansiosos por coisa alguma, mas em tudo, pela oração e súplicas, e com ação de graças, apresentem seus pedidos a Deus. E a paz de Deus, que excede todo o entendimento, guardará o coração e a mente de vocês em Cristo Jesus.",
       "categoria": "medo_ansiedade_paz",
-      "temas": ["ansiedade", "oração", "paz de Deus", "gratidão"]
+      "temas": [
+        "ansiedade",
+        "oração",
+        "paz de Deus",
+        "gratidão"
+      ]
     },
     {
       "id": "isaias_41_10",
       "ref": "Isaías 41:10",
       "texto": "Não tema, pois estou com você; não se assuste, pois sou o seu Deus. Eu o fortalecerei e o ajudarei; eu o segurarei com a minha mão direita vitoriosa.",
       "categoria": "medo_ansiedade_paz",
-      "temas": ["medo", "presença de Deus", "fortalecimento", "segurança"]
+      "temas": [
+        "medo",
+        "presença de Deus",
+        "fortalecimento",
+        "segurança"
+      ]
     },
     {
       "id": "mateus_11_28",
       "ref": "Mateus 11:28-30",
       "texto": "Venham a mim, todos os que estão cansados e sobrecarregados, e eu darei descanso a vocês. Tomem sobre vocês o meu jugo e aprendam de mim, pois sou manso e humilde de coração, e vocês encontrarão descanso para as suas almas.",
       "categoria": "sofrimento_luto",
-      "temas": ["cansaço", "descanso em Cristo", "alívio", "sobrecarga da vida"]
-    },
-    {
-      "id": "efesios_4_32",
-      "ref": "Efésios 4:32",
-      "texto": "Sejam bondosos e compassivos uns para com os outros, perdoando-se mutuamente, assim como Deus os perdoou em Cristo.",
-      "categoria": "perdao_reconciliacao",
-      "temas": ["perdão", "bondade", "compaixão", "relacionamentos"]
-    },
-    {
-      "id": "mateus_6_14",
-      "ref": "Mateus 6:14-15",
-      "texto": "Pois, se perdoarem as ofensas uns dos outros, o Pai celestial também perdoará vocês. Mas, se não perdoarem uns aos outros, também o Pai não perdoará as ofensas de vocês.",
-      "categoria": "perdao_reconciliacao",
-      "temas": ["perdoar os outros", "consequências", "misericórdia recíproca"]
+      "temas": [
+        "cansaço",
+        "descanso em Cristo",
+        "alívio",
+        "sobrecarga da vida"
+      ]
     },
     {
       "id": "josue_24_15",
       "ref": "Josué 24:15",
       "texto": "Escolham hoje a quem servirão… Mas, eu e a minha família, serviremos ao Senhor.",
       "categoria": "familia_relacionamentos",
-      "temas": ["decisão familiar", "liderança espiritual", "serviço a Deus", "firmeza"]
+      "temas": [
+        "decisão familiar",
+        "liderança espiritual",
+        "serviço a Deus",
+        "firmeza"
+      ]
     },
     {
       "id": "proverbios_22_6",
       "ref": "Provérbios 22:6",
       "texto": "Instrua a criança segundo os objetivos que você tem para ela, e mesmo com o passar dos anos não se desviará deles.",
       "categoria": "familia_relacionamentos",
-      "temas": ["educação dos filhos", "responsabilidade parental", "formação"]
+      "temas": [
+        "educação dos filhos",
+        "responsabilidade parental",
+        "formação"
+      ]
     },
     {
       "id": "colossenses_3_23",
       "ref": "Colossenses 3:23-24",
       "texto": "Tudo o que fizerem, façam de todo o coração, como para o Senhor, e não para os homens, sabendo que receberão do Senhor a recompensa da herança. É a Cristo, o Senhor, que vocês estão servindo.",
       "categoria": "trabalho_proposito",
-      "temas": ["trabalho como adoração", "excelência", "motivação", "propósito"]
+      "temas": [
+        "trabalho como adoração",
+        "excelência",
+        "motivação",
+        "propósito"
+      ]
     },
     {
       "id": "salmos_23_1",
       "ref": "Salmo 23:1-4",
       "texto": "O Senhor é o meu pastor; nada me faltará. Em verdes prados me faz descansar e me conduz a águas tranquilas; restaura-me o vigor. Mesmo quando eu andar por um vale de trevas e morte, não temerei perigo algum, pois tu estás comigo.",
       "categoria": "sofrimento_luto",
-      "temas": ["Deus pastor", "luto", "presença de Deus", "conforto"]
+      "temas": [
+        "Deus pastor",
+        "luto",
+        "presença de Deus",
+        "conforto"
+      ]
     },
     {
       "id": "romanos_8_28",
       "ref": "Romanos 8:28",
       "texto": "Sabemos que Deus age em todas as coisas para o bem daqueles que o amam, dos que foram chamados de acordo com o seu propósito.",
       "categoria": "esperanca_promessas",
-      "temas": ["providência", "bem maior", "propósito", "adversidade"]
+      "temas": [
+        "providência",
+        "bem maior",
+        "propósito",
+        "adversidade"
+      ]
     },
     {
       "id": "tiago_4_6",
       "ref": "Tiago 4:6",
       "texto": "Deus se opõe aos orgulhosos, mas concede graça aos humildes.",
       "categoria": "humildade_carater",
-      "temas": ["humildade", "orgulho", "graça", "postura diante de Deus"]
+      "temas": [
+        "humildade",
+        "orgulho",
+        "graça",
+        "postura diante de Deus"
+      ]
     },
     {
       "id": "miqueias_6_8",
       "ref": "Miqueias 6:8",
       "texto": "Ele lhe mostrou, ó homem, o que é bom e o que o Senhor exige: pratique a justiça, ame a fidelidade e ande humildemente com o seu Deus.",
       "categoria": "justica_misericordia",
-      "temas": ["justiça social", "fidelidade", "caminhar com Deus", "ética cristã"]
+      "temas": [
+        "justiça social",
+        "fidelidade",
+        "caminhar com Deus",
+        "ética cristã"
+      ]
     },
     {
       "id": "1tessalonicenses_5_18",
       "ref": "1 Tessalonicenses 5:18",
       "texto": "Deem graças em todas as circunstâncias, pois esta é a vontade de Deus para vocês em Cristo Jesus.",
       "categoria": "gratidao_adoracao",
-      "temas": ["gratidão", "contentamento", "circunstâncias difíceis", "vontade de Deus"]
+      "temas": [
+        "gratidão",
+        "contentamento",
+        "circunstâncias difíceis",
+        "vontade de Deus"
+      ]
     },
     {
       "id": "eclesiastes_4_9",
       "ref": "Eclesiastes 4:9-10",
       "texto": "É melhor ter companhia do que estar sozinho, porque maior é a recompensa do trabalho de duas pessoas. Se um cair, o amigo pode ajudá-lo a levantar-se.",
       "categoria": "amizade_comunidade",
-      "temas": ["amizade", "comunidade", "apoio mútuo", "solidão"]
+      "temas": [
+        "amizade",
+        "comunidade",
+        "apoio mútuo",
+        "solidão"
+      ]
     },
     {
       "id": "hebreus_12_5",
       "ref": "Hebreus 12:5-7",
       "texto": "Meu filho, não faça pouco caso da disciplina do Senhor, nem se magoe com a sua repreensão, pois o Senhor disciplina a quem ama, e castiga todo aquele a quem aceita como filho.",
       "categoria": "juizo_disciplina_santidade",
-      "temas": ["disciplina de Deus", "correção", "amor duro", "maturidade espiritual"]
+      "temas": [
+        "disciplina de Deus",
+        "correção",
+        "amor duro",
+        "maturidade espiritual"
+      ]
     },
     {
       "id": "1pedro_1_15",
       "ref": "1 Pedro 1:15-16",
       "texto": "Mas, assim como é santo aquele que os chamou, sejam santos vocês também em tudo o que fizerem, pois está escrito: Sejam santos, porque eu sou santo.",
       "categoria": "juizo_disciplina_santidade",
-      "temas": ["santidade", "chamado", "identidade cristã", "conduta"]
+      "temas": [
+        "santidade",
+        "chamado",
+        "identidade cristã",
+        "conduta"
+      ]
     },
     {
       "id": "hebreus_10_24",
       "ref": "Hebreus 10:24-25",
       "texto": "E consideremos uns aos outros para incentivar-nos ao amor e às boas obras. Não deixemos de reunir-nos como igreja.",
       "categoria": "amizade_comunidade",
-      "temas": ["comunhão", "encorajamento", "igreja", "responsabilidade mútua"]
-    },
-    {
-      "id": "lucas_15_20",
-      "ref": "Lucas 15:20",
-      "texto": "A grande distância, seu pai o viu e, cheio de compaixão, correu para o filho, e o abraçou e o beijou.",
-      "categoria": "perdao_reconciliacao",
-      "temas": ["volta para casa", "perdão do Pai", "arrependimento", "acolhida"]
+      "temas": [
+        "comunhão",
+        "encorajamento",
+        "igreja",
+        "responsabilidade mútua"
+      ]
     },
     {
       "id": "galatas_6_9",
       "ref": "Gálatas 6:9",
       "texto": "E não nos cansemos de fazer o bem, pois no tempo certo colheremos, se não desanimarmos.",
       "categoria": "esperanca_promessas",
-      "temas": ["perseverança", "desânimo", "colheita", "boas obras"]
+      "temas": [
+        "perseverança",
+        "desânimo",
+        "colheita",
+        "boas obras"
+      ]
+    },
+    {
+      "id": "romanos_8_37",
+      "ref": "Romanos 8:37",
+      "texto": "Em todas essas coisas somos mais que vencedores por meio daquele que nos amou.",
+      "categoria": "esperanca_promessas",
+      "temas": [
+        "vitória em Cristo",
+        "superação",
+        "amor de Deus",
+        "conquista"
+      ]
+    },
+    {
+      "id": "joao_10_10",
+      "ref": "João 10:10",
+      "texto": "Eu vim para que tenham vida e a tenham em abundância.",
+      "categoria": "esperanca_promessas",
+      "temas": [
+        "vida abundante",
+        "propósito",
+        "esperança",
+        "plenitude"
+      ]
+    },
+    {
+      "id": "isaias_40_31",
+      "ref": "Isaías 40:31",
+      "texto": "Os que esperam no Senhor renovam as suas forças. Voam alto como águias; correm e não se cansam, caminham e não se fatigam.",
+      "categoria": "esperanca_promessas",
+      "temas": [
+        "renovação",
+        "espera em Deus",
+        "força",
+        "perseverança"
+      ]
+    },
+    {
+      "id": "2timoteo_1_7",
+      "ref": "2 Timóteo 1:7",
+      "texto": "Pois Deus não nos deu espírito de covardia, mas de poder, de amor e de equilíbrio.",
+      "categoria": "fe_confianca",
+      "temas": [
+        "identidade em Cristo",
+        "coragem",
+        "poder de Deus",
+        "autoestima cristã"
+      ]
+    },
+    {
+      "id": "jeremias_1_5",
+      "ref": "Jeremias 1:5",
+      "texto": "Antes de eu te formar no ventre materno, eu te conheci; antes de nasceres, eu te consagrei.",
+      "categoria": "trabalho_proposito",
+      "temas": [
+        "chamado",
+        "identidade",
+        "propósito divino",
+        "escolha de Deus"
+      ]
+    },
+    {
+      "id": "salmo_139_14",
+      "ref": "Salmo 139:14",
+      "texto": "Eu te louvo porque sou formidável e maravilhosamente criado; as tuas obras são admiráveis, e isso a minha alma sabe muito bem.",
+      "categoria": "humildade_carater",
+      "temas": [
+        "identidade",
+        "autoestima cristã",
+        "criação de Deus",
+        "valor pessoal"
+      ]
     }
   ]
 }
