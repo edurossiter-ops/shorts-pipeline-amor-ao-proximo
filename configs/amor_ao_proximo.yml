@@ -6,13 +6,13 @@
 # Cálculo da duração:
 #   450 palavras × (60s ÷ 150 palavras/min @ speed 1.20) ÷ aceleração 1.10
 #   = ~164s de vídeo final (margem de 16s antes do limite de 180s/3min)
-
+ 
 channel:
   name: "amor_ao_proximo"
   # youtube_channel_id opcional — quando não informado, usa o canal padrão da conta.
   # Como o token OAuth já está amarrado ao canal "Amor ao Próximo", pode deixar comentado.
   # youtube_channel_id: "UCxxxxxxxxxxxxxxxxxxxxx"
-
+ 
 # --- Fonte de tema: versículos bíblicos ---
 bible:
   versiculos_file: "configs/versiculos.json"
@@ -34,7 +34,7 @@ bible:
     - "Hoje Deus quer te dizer uma coisa importante sobre o que você está vivendo..."
     - "Deus tem uma mensagem pra você hoje — e ela vai mudar como você vê essa situação..."
   recent_hooks_avoid: 5
-
+ 
 # --- Geração da reflexão (Claude) ---
 story:
   language: "Português Brasileiro"
@@ -42,23 +42,23 @@ story:
     Canal "Amor ao Próximo": reflexões cristãs sobre dilemas da vida real.
     Trata de situações que TODO MUNDO vive — família, trabalho, amizades, amor,
     perda, dúvida, medo, culpa, esperança — à luz da fé em Jesus Cristo.
-
+ 
     FORMATO: REFLEXÃO, NÃO HISTÓRIA.
     Não conte histórias ("uma mulher estava andando na rua...", "João trabalhava...").
     Fale DIRETAMENTE com a pessoa que está ouvindo, em segunda pessoa ("você").
     Aborde um DILEMA REAL que ela pode estar vivendo e mostre como o Evangelho
     oferece um caminho.
-
+ 
     Tom: profundidade espiritual + humanidade. Acolhedor, mas sem relativizar o
     pecado. Mostra Cristo como resposta, não como opção filosófica.
     Linguagem coloquial, emocional, próxima. NÃO doutrinária, NÃO panfletária,
     NÃO com jargão teológico. Mas também NÃO genérica — cristã de verdade.
-
+ 
   # Os "pillars" e "themes" aqui não são usados diretamente pela fonte bíblica,
   # mas ficam como referência editorial sobre o que o canal cobre.
   allowed_pillars:
     - reflexao_crista
-
+ 
   allowed_themes:
     - familia
     - trabalho
@@ -69,7 +69,7 @@ story:
     - perdao_reconciliacao
     - proposito_chamado
     - fe_no_cotidiano
-
+ 
   forbidden_topics:
     - Proselitismo agressivo ou ataques a outras religiões
     - Conteúdo sectário ou teologicamente polêmico (predestinação, denominações brigando)
@@ -78,14 +78,14 @@ story:
     - Citação literal de versículos bíblicos (o versículo é seed INTERNO, nunca citado)
     - Nomes de pessoas reais, igrejas reais ou denominações específicas
     - Narrativa em terceira pessoa ("João pensou...", "Maria entrou...")
-
+ 
   duration_target_seconds: 180   # alvo da NARRAÇÃO crua (será acelerada em 1.10x)
   word_count_min: 420
   word_count_max: 450
   include_hook: true
-
+ 
   cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se inscreve no canal Amor ao Próximo pro seu versículo diário."
-
+ 
   extra_instructions: |
     REGRAS:
     1. O VERSÍCULO DO INPUT determina o dilema. Trabalho → fale de trabalho.
@@ -96,11 +96,11 @@ story:
     5. NUNCA cite o versículo no texto — ele aparece só no CTA final.
     6. NUNCA use tags em colchetes — o modelo de voz lê literalmente.
     7. Última frase: exatamente o CTA fornecido.
-
+ 
     ESTRUTURA:
     Gancho → Dilema específico do versículo → Desenvolver a dor →
     Perspectiva de Cristo → Oração (4-6 linhas) → CTA
-
+ 
     ARCOS NARRATIVOS PERMITIDOS (escolha um conforme o versículo):
     - Consolo: "você está sofrendo, Deus está com você"
     - Esperança: "sua situação vai mudar, Deus tem um plano"
@@ -108,22 +108,22 @@ story:
     - Chamado: "Deus te criou com um propósito, não desperdice"
     - Gratidão: "olha o que Deus já fez na sua vida"
     - Vitória: "em Cristo você já venceu, ande como vencedor"
-
+ 
     PROIBIDO: narrativa em terceira pessoa, jargão teológico,
     teologia da prosperidade, autoajuda genérica sem Cristo,
     qualquer arco de culpa/arrependimento/perdão.
-
+ 
   model: "claude-sonnet-4-20250514"
   max_tokens: 4000
   temperature: 0.85
-
+ 
 # --- Narração (ElevenLabs) ---
 narration:
   voice_id: "xsSg7GkDPDhaGZpbKOLn"
   model_id: "eleven_multilingual_v2"   # melhor pra português + speed do que eleven_v3
   speed: 1.20                           # máximo do ElevenLabs sem ficar robótico
   max_chars_per_call: 4999
-
+ 
 # --- Seleção visual (Pexels) ---
 visual:
   queries:
@@ -161,7 +161,7 @@ visual:
     - drugs
     - smoking
     - violence
-
+ 
 # --- Montagem do vídeo (FFmpeg) ---
 video:
   target_width: 1080
@@ -172,7 +172,7 @@ video:
   font_size: 76
   max_words_per_caption: 4        # legendas mais curtas, ritmo contemplativo
   whisper_model: "small"
-
+ 
 # --- Publicação no YouTube ---
 youtube:
   category_id: "22"        # People & Blogs (também serve "29" Nonprofits & Activism)
@@ -189,12 +189,10 @@ youtube:
   made_for_kids: false
   default_language: "pt"
   default_audio_language: "pt"
-
+ 
 # --- Retry ---
 retry:
   max_attempts_per_step: 3
   initial_delay: 5.0
   max_delay: 60.0
   continue_on_step_failure: false
-
-
