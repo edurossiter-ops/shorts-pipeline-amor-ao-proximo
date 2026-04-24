@@ -52,12 +52,9 @@ jobs:
           cache: "pip"
 
       - name: Install FFmpeg
-        # Usa action do marketplace que baixa binário pré-compilado.
-        # Evita o apt-get update que pode ficar minutos tentando atualizar
-        # repositórios do runner (Chrome, etc) que às vezes estão lentos.
-        uses: FedericoCarboni/setup-ffmpeg@v3
-        with:
-          ffmpeg-version: "release"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
       - name: Install Python deps
         run: |
