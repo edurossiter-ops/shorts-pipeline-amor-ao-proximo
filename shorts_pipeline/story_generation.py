@@ -195,7 +195,7 @@ def _call_claude(
         headers=headers,
         json=payload,
         timeout=300,
-        max_attempts=4,
+        max_attempts=7,
         initial_delay=5.0,
     )
     data = resp.json()
