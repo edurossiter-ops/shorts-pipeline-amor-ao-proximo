@@ -80,8 +80,8 @@ story:
     - Narrativa em terceira pessoa ("João pensou...", "Maria entrou...")
  
   duration_target_seconds: 180   # alvo da NARRAÇÃO crua (será acelerada em 1.10x)
-  word_count_min: 420
-  word_count_max: 450
+  word_count_min: 370
+  word_count_max: 465
   include_hook: true
  
   cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se inscreve no canal Amor ao Próximo pro seu versículo diário."
