@@ -368,15 +368,33 @@ def _add_intro_outro_music(
         if has_musica:
             logger.info("Mixando música de fundo (15% volume)...")
             video_dur = _ffprobe_duration(concatenado)
+
+            # Verifica se o concatenado tem trilha de áudio
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-select_streams", "a",
+                 "-show_entries", "stream=codec_type",
+                 "-of", "default=noprint_wrappers=1:nokey=1",
+                 concatenado.as_posix()],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            )
+            has_audio = "audio" in probe.stdout
+
+            if has_audio:
+                # Mix normal: narração + música de fundo
+                filter_complex = (
+                    "[1:a]volume=0.15[music];"
+                    "[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[aout]"
+                )
+            else:
+                # Sem áudio no vídeo: usa só a música de fundo
+                logger.warning("Vídeo concatenado sem trilha de áudio — usando só música de fundo.")
+                filter_complex = "[1:a]volume=0.15[aout]"
+
             _run_ffmpeg([
                 "ffmpeg", "-y",
                 "-i", concatenado.as_posix(),
                 "-stream_loop", "-1", "-i", str(musica_src),
-                "-filter_complex",
-                # volume 0.15 = 15% da música de fundo
-                # amerge mistura com o áudio da narração
-                "[1:a]volume=0.15[music];"
-                "[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+                "-filter_complex", filter_complex,
                 "-map", "0:v", "-map", "[aout]",
                 "-c:v", "libx264", "-preset", "medium",
                 "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
