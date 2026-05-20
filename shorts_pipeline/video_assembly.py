@@ -5,6 +5,7 @@ Refatorado para:
 - Resolução, FPS, velocidade final configuráveis
 - Fonte, tamanho e número de palavras por legenda configuráveis
 - Dependências (ffmpeg/ffprobe) verificadas explicitamente
+- Abertura, encerramento e música de fundo opcionais (assets/ na raiz do repo)
 """
 from __future__ import annotations
 
@@ -90,80 +91,22 @@ def _escape_ass(text: str) -> str:
 
 
 def _align_words(audio_path: Path, model_name: str) -> List[TimedWord]:
-    """
-    Alinha palavras via Whisper, rodando em processo filho isolado.
-
-    Em vez de carregar Whisper no processo principal (que já tem Anthropic SDK,
-    ElevenLabs, Pillow, requests de Pexels, etc. em memória), chama um worker
-    separado via subprocess. Isso garante:
-      - Ambiente limpo de RAM pro Whisper
-      - Liberação total de memória após transcrição (processo filho morre)
-      - Isolamento de eventuais travas de onnxruntime/ctranslate2
-    """
-    import json as json_lib
-
-    logger = get_logger()
-
-    # Arquivo temporário pra receber o output do worker
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False, encoding="utf-8"
-    ) as tmp:
-        output_path = Path(tmp.name)
-
-    try:
-        cmd = [
-            sys.executable, "-m", "shorts_pipeline._whisper_worker",
-            "--audio", str(audio_path),
-            "--model", model_name,
-            "--output", str(output_path),
-        ]
-        logger.info(f"Executando worker Whisper: {' '.join(cmd)}")
-
-        # Timeout de 10 minutos — se passar disso é trava real, não lentidão
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=600,
-            check=False,
-        )
-
-        # Imprime stdout/stderr do worker no log principal
-        if result.stdout:
-            for line in result.stdout.splitlines():
-                logger.info(f"  {line}")
-        if result.stderr:
-            for line in result.stderr.splitlines():
-                logger.warning(f"  [worker stderr] {line}")
-
-        if result.returncode != 0:
-            raise PermanentError(
-                f"Worker Whisper retornou código {result.returncode}. "
-                f"Ver logs acima."
-            )
-
-        # Lê o JSON de palavras
-        with output_path.open("r", encoding="utf-8") as f:
-            raw_words = json_lib.load(f)
-
-        words = [
-            TimedWord(w["word"], float(w["start"]), float(w["end"]))
-            for w in raw_words
-        ]
-
-        if not words:
-            raise PermanentError("Whisper não retornou palavras com timestamp.")
-        return words
-
-    except subprocess.TimeoutExpired:
-        raise PermanentError(
-            "Worker Whisper excedeu 10 minutos. Trava real — não continuar."
-        )
-    finally:
-        try:
-            output_path.unlink()
-        except FileNotFoundError:
-            pass
+    from faster_whisper import WhisperModel
+    model = WhisperModel(model_name, device="cpu", compute_type="int8")
+    segments, _ = model.transcribe(
+        str(audio_path), language="pt", word_timestamps=True, vad_filter=True,
+    )
+    words: List[TimedWord] = []
+    for seg in segments:
+        for w in getattr(seg, "words", None) or []:
+            if w.start is None or w.end is None:
+                continue
+            token = (w.word or "").strip()
+            if token:
+                words.append(TimedWord(token, float(w.start), float(w.end)))
+    if not words:
+        raise PermanentError("Whisper não retornou palavras com timestamp.")
+    return words
 
 
 def _build_srt(words: List[TimedWord], out: Path, max_per_caption: int) -> None:
@@ -245,14 +188,12 @@ def _make_background(
     config: PipelineConfig,
 ) -> List[Dict[str, Any]]:
     v = config.video
-    # O vídeo final será acelerado por speed, então o material bruto precisa ser
-    # audio_duration * speed para que depois de acelerar volte a bater com o áudio.
     target = audio_duration * v.final_speed_multiplier
 
     plan: List[Dict[str, Any]] = []
     remaining = target
     i = 0
-    while remaining > 0.01 and i < len(clips) * 10:  # loop de segurança
+    while remaining > 0.01 and i < len(clips) * 10:
         c = clips[i % len(clips)]
         use = min(c["duration"], remaining)
         plan.append({"path": c["path"], "used_duration": use})
@@ -315,6 +256,143 @@ def _mux_final(
     ])
 
 
+def _normalize_clip_for_concat(src: Path, out: Path, config: PipelineConfig) -> None:
+    """
+    Normaliza um clipe (abertura ou encerramento) pra ter exatamente
+    a mesma resolução, FPS, codec e formato de áudio do vídeo da reflexão.
+    Necessário pro concat FFmpeg funcionar sem erros.
+    """
+    v = config.video
+    _run_ffmpeg([
+        "ffmpeg", "-y", "-i", str(src),
+        "-vf",
+        f"scale={v.target_width}:{v.target_height}:force_original_aspect_ratio=increase,"
+        f"crop={v.target_width}:{v.target_height},setsar=1,fps={v.fps},format=yuv420p",
+        "-c:v", "libx264", "-preset", "medium",
+        "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+        "-b:v", "8000k", "-maxrate", "8000k", "-bufsize", "16000k",
+        "-r", str(v.fps),
+        # Adiciona trilha de áudio silenciosa se o clipe for mudo
+        "-af", "aresample=44100",
+        "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+        out.as_posix(),
+    ])
+
+
+def _add_intro_outro_music(
+    reflexao: Path,
+    out: Path,
+    config: PipelineConfig,
+) -> None:
+    """
+    1. Normaliza abertura e encerramento pra mesmo formato da reflexão
+    2. Concatena: abertura + reflexão + encerramento
+    3. Mixa musica_fundo.mp3 em todo o vídeo (volume 15%)
+
+    Os assets são procurados na raiz do projeto (onde o pipeline roda).
+    Se algum não existir, etapa é pulada com aviso.
+    """
+    logger = get_logger()
+    v = config.video
+
+    # Caminhos dos assets na raiz do repositório
+    repo_root = Path.cwd()
+    abertura_src = repo_root / "abertura.mp4"
+    encerramento_src = repo_root / "encerramento.mp4"
+    musica_src = repo_root / "musica_fundo.mp3"
+
+    has_abertura = abertura_src.exists()
+    has_encerramento = encerramento_src.exists()
+    has_musica = musica_src.exists()
+
+    logger.info(
+        f"Assets: abertura={'✓' if has_abertura else '✗'} | "
+        f"encerramento={'✓' if has_encerramento else '✗'} | "
+        f"música={'✓' if has_musica else '✗'}"
+    )
+
+    if not has_abertura and not has_encerramento and not has_musica:
+        logger.info("Nenhum asset encontrado — pulando abertura/encerramento/música.")
+        return
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmpdir = Path(tmp)
+        parts_to_concat: List[Path] = []
+
+        # 1. Normaliza e adiciona abertura
+        if has_abertura:
+            abertura_norm = tmpdir / "abertura_norm.mp4"
+            logger.info("Normalizando abertura...")
+            _normalize_clip_for_concat(abertura_src, abertura_norm, config)
+            parts_to_concat.append(abertura_norm)
+
+        # 2. Adiciona reflexão (já está no formato certo, mas re-encode pra garantir)
+        reflexao_norm = tmpdir / "reflexao_norm.mp4"
+        logger.info("Normalizando reflexão pra concat...")
+        _run_ffmpeg([
+            "ffmpeg", "-y", "-i", str(reflexao),
+            "-c:v", "libx264", "-preset", "medium",
+            "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+            "-b:v", "8000k", "-r", str(v.fps),
+            "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+            reflexao_norm.as_posix(),
+        ])
+        parts_to_concat.append(reflexao_norm)
+
+        # 3. Normaliza e adiciona encerramento
+        if has_encerramento:
+            encerramento_norm = tmpdir / "encerramento_norm.mp4"
+            logger.info("Normalizando encerramento...")
+            _normalize_clip_for_concat(encerramento_src, encerramento_norm, config)
+            parts_to_concat.append(encerramento_norm)
+
+        # 4. Concatena tudo
+        concat_list = tmpdir / "concat_final.txt"
+        concat_list.write_text(
+            "\n".join(f"file '{p.as_posix()}'" for p in parts_to_concat),
+            encoding="utf-8",
+        )
+        concatenado = tmpdir / "concatenado.mp4"
+        logger.info(f"Concatenando {len(parts_to_concat)} partes...")
+        _run_ffmpeg([
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+            "-i", concat_list.as_posix(),
+            "-c:v", "libx264", "-preset", "medium",
+            "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+            "-b:v", "8000k", "-r", str(v.fps),
+            "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+            concatenado.as_posix(),
+        ])
+
+        # 5. Mixa música de fundo (se existir)
+        if has_musica:
+            logger.info("Mixando música de fundo (15% volume)...")
+            video_dur = _ffprobe_duration(concatenado)
+            _run_ffmpeg([
+                "ffmpeg", "-y",
+                "-i", concatenado.as_posix(),
+                "-stream_loop", "-1", "-i", str(musica_src),
+                "-filter_complex",
+                # volume 0.15 = 15% da música de fundo
+                # amerge mistura com o áudio da narração
+                "[1:a]volume=0.15[music];"
+                "[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+                "-map", "0:v", "-map", "[aout]",
+                "-c:v", "libx264", "-preset", "medium",
+                "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+                "-b:v", "8000k", "-r", str(v.fps),
+                "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+                "-t", str(video_dur),
+                out.as_posix(),
+            ])
+        else:
+            # Sem música, só move o concatenado pro output final
+            import shutil as _shutil
+            _shutil.copy2(str(concatenado), str(out))
+
+    logger.info(f"Vídeo final com abertura/encerramento/música: {out}")
+
+
 def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     logger = get_logger()
     _check_deps()
@@ -348,13 +426,28 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     plan = _make_background(audio_duration, clips, background_prep, config)
     save_json(assembly_dir / "clip_plan.json", {"cycle_id": cycle_dir.name, "clips": plan})
 
-    final_video = assembly_dir / "assembled_video.mp4"
-    _mux_final(background_prep, ass_path, audio_path, final_video, config)
+    # Vídeo da reflexão (sem abertura/encerramento ainda)
+    reflexao_video = assembly_dir / "assembled_video_reflexao.mp4"
+    _mux_final(background_prep, ass_path, audio_path, reflexao_video, config)
 
     try:
         background_prep.unlink()
     except FileNotFoundError:
         pass
+
+    # Adiciona abertura, encerramento e música de fundo
+    final_video = assembly_dir / "assembled_video.mp4"
+    _add_intro_outro_music(reflexao_video, final_video, config)
+
+    # Se a função de intro/outro não gerou o final (assets não existiam),
+    # usa o vídeo da reflexão como final
+    if not final_video.exists():
+        reflexao_video.rename(final_video)
+    else:
+        try:
+            reflexao_video.unlink()
+        except FileNotFoundError:
+            pass
 
     final_duration = _ffprobe_duration(final_video)
     payload = {
@@ -367,6 +460,9 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
         "video_duration_seconds": round(final_duration, 3),
         "final_speed_multiplier": config.video.final_speed_multiplier,
         "clip_count_used": len(plan),
+        "has_abertura": (Path.cwd() / "abertura.mp4").exists(),
+        "has_encerramento": (Path.cwd() / "encerramento.mp4").exists(),
+        "has_musica_fundo": (Path.cwd() / "musica_fundo.mp3").exists(),
         "status": "success",
         "generated_at": now_iso(),
     }
