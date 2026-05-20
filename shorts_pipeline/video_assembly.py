@@ -1,18 +1,11 @@
 """
 Etapa 5: Montagem final do vídeo via FFmpeg.
-
-Refatorado para:
-- Resolução, FPS, velocidade final configuráveis
-- Fonte, tamanho e número de palavras por legenda configuráveis
-- Dependências (ffmpeg/ffprobe) verificadas explicitamente
-- Abertura, encerramento e música de fundo opcionais (assets/ na raiz do repo)
 """
 from __future__ import annotations
 
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -52,12 +45,8 @@ def _run_ffmpeg(cmd: List[str]) -> None:
 
 def _ffprobe_duration(path: Path) -> float:
     result = subprocess.run(
-        [
-            "ffprobe", "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1",
-            str(path),
-        ],
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
     )
     if result.returncode != 0:
@@ -109,7 +98,9 @@ def _align_words(audio_path: Path, model_name: str) -> List[TimedWord]:
     return words
 
 
-def _build_srt(words: List[TimedWord], out: Path, max_per_caption: int) -> None:
+def _build_srt(words: List[TimedWord], out: Path, max_per_caption: int,
+               time_offset: float = 0.0) -> None:
+    """time_offset: segundos a somar em todos os timestamps (pra compensar abertura)."""
     chunks = []
     current: List[TimedWord] = []
     start = None
@@ -126,13 +117,23 @@ def _build_srt(words: List[TimedWord], out: Path, max_per_caption: int) -> None:
 
     lines = []
     for i, (s, e, ws) in enumerate(chunks, start=1):
-        lines.extend([str(i), f"{_format_srt_time(s)} --> {_format_srt_time(e)}",
-                      " ".join(w.word for w in ws).strip(), ""])
+        lines.extend([
+            str(i),
+            f"{_format_srt_time(s + time_offset)} --> {_format_srt_time(e + time_offset)}",
+            " ".join(w.word for w in ws).strip(), "",
+        ])
     out.write_text("\n".join(lines), encoding="utf-8")
 
 
-def _build_ass(words: List[TimedWord], out: Path, config: PipelineConfig) -> None:
+def _build_ass(words: List[TimedWord], out: Path, config: PipelineConfig,
+               time_offset: float = 0.0) -> None:
+    """
+    time_offset: segundos a somar em todos os timestamps (pra compensar abertura).
+    Legenda centralizada no TOPO (Alignment=8), fonte maior, margem superior.
+    """
     v = config.video
+    # Fonte 10% maior que o configurado, alinhamento topo-centro (8)
+    font_size = int(v.font_size * 1.1)
     header = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {v.target_width}
@@ -141,11 +142,14 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Karaoke,{v.font_name},{v.font_size},&H00FFFFFF,&H0000FFFF,&H00000000,&H64000000,1,0,0,0,100,100,0,0,1,3,0,2,60,60,360,1
+Style: Karaoke,{v.font_name},{font_size},&H00FFFFFF,&H0000FFFF,&H00000000,&H64000000,1,0,0,0,100,100,0,0,1,3,0,8,60,60,200,1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
 """
+    # Alignment=8 = topo centralizado
+    # MarginV=200 = 200px de margem do topo
+
     events: List[str] = []
     current: List[TimedWord] = []
     block_start = None
@@ -153,7 +157,9 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
     def flush(block: List[TimedWord], s: float, e: float):
         text = " ".join(_escape_ass(w.word) for w in block).strip()
         if text:
-            events.append(f"Dialogue: 0,{_format_ass_time(s)},{_format_ass_time(e)},Karaoke,,0,0,0,,{text}")
+            ts = _format_ass_time(s + time_offset)
+            te = _format_ass_time(e + time_offset)
+            events.append(f"Dialogue: 0,{ts},{te},Karaoke,,0,0,0,,{text}")
 
     for w in words:
         if block_start is None:
@@ -258,44 +264,82 @@ def _mux_final(
 
 def _normalize_clip_for_concat(src: Path, out: Path, config: PipelineConfig) -> None:
     """
-    Normaliza um clipe (abertura ou encerramento) pra ter exatamente
-    a mesma resolução, FPS, codec e formato de áudio do vídeo da reflexão.
-    Necessário pro concat FFmpeg funcionar sem erros.
+    Normaliza abertura/encerramento pra mesma resolução, FPS e codec da reflexão.
+    Clipes mudos recebem trilha de silêncio pra o concat funcionar.
     """
     v = config.video
-    _run_ffmpeg([
-        "ffmpeg", "-y", "-i", str(src),
-        "-vf",
-        f"scale={v.target_width}:{v.target_height}:force_original_aspect_ratio=increase,"
-        f"crop={v.target_width}:{v.target_height},setsar=1,fps={v.fps},format=yuv420p",
-        "-c:v", "libx264", "-preset", "medium",
-        "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
-        "-b:v", "8000k", "-maxrate", "8000k", "-bufsize", "16000k",
-        "-r", str(v.fps),
-        # Adiciona trilha de áudio silenciosa se o clipe for mudo
-        "-af", "aresample=44100",
-        "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
-        out.as_posix(),
-    ])
+
+    # Verifica se o clipe tem áudio
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a",
+         "-show_entries", "stream=codec_type",
+         "-of", "default=noprint_wrappers=1:nokey=1", str(src)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    )
+    src_has_audio = "audio" in probe.stdout
+
+    if src_has_audio:
+        # Clipe com áudio — normaliza normalmente
+        audio_args = ["-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2"]
+    else:
+        # Clipe mudo — gera trilha de silêncio sintética
+        audio_args = [
+            "-f", "lavfi", "-i", "aevalsrc=0:sample_rate=44100:channel_layout=stereo",
+            "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+        ]
+
+    dur = _ffprobe_duration(src)
+
+    if src_has_audio:
+        _run_ffmpeg([
+            "ffmpeg", "-y", "-i", str(src),
+            "-vf",
+            f"scale={v.target_width}:{v.target_height}:force_original_aspect_ratio=increase,"
+            f"crop={v.target_width}:{v.target_height},setsar=1,fps={v.fps},format=yuv420p",
+            "-c:v", "libx264", "-preset", "medium",
+            "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+            "-b:v", "8000k", "-r", str(v.fps),
+            *audio_args,
+            out.as_posix(),
+        ])
+    else:
+        # Clipe mudo: vídeo do src + silêncio gerado sinteticamente
+        _run_ffmpeg([
+            "ffmpeg", "-y",
+            "-i", str(src),
+            "-f", "lavfi", "-i", f"aevalsrc=0:sample_rate=44100:channel_layout=stereo:duration={dur}",
+            "-map", "0:v", "-map", "1:a",
+            "-vf",
+            f"scale={v.target_width}:{v.target_height}:force_original_aspect_ratio=increase,"
+            f"crop={v.target_width}:{v.target_height},setsar=1,fps={v.fps},format=yuv420p",
+            "-c:v", "libx264", "-preset", "medium",
+            "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+            "-b:v", "8000k", "-r", str(v.fps),
+            "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+            "-shortest",
+            out.as_posix(),
+        ])
 
 
 def _add_intro_outro_music(
     reflexao: Path,
+    ass_path: Path,
     out: Path,
     config: PipelineConfig,
+    words: List[TimedWord],
+    assembly_dir: Path,
 ) -> None:
     """
-    1. Normaliza abertura e encerramento pra mesmo formato da reflexão
-    2. Concatena: abertura + reflexão + encerramento
-    3. Mixa musica_fundo.mp3 em todo o vídeo (volume 15%)
-
-    Os assets são procurados na raiz do projeto (onde o pipeline roda).
-    Se algum não existir, etapa é pulada com aviso.
+    1. Detecta duração da abertura (offset das legendas)
+    2. Reconstrói ASS com offset pra cobrir abertura + reflexão + encerramento
+    3. Normaliza abertura e encerramento com silêncio sintético
+    4. Concatena: abertura + reflexão + encerramento
+    5. Queima legendas no vídeo concatenado
+    6. Mixa musica_fundo.mp3 em todo o vídeo (narração mais alta, música suave)
     """
     logger = get_logger()
     v = config.video
 
-    # Caminhos dos assets na raiz do repositório
     repo_root = Path.cwd()
     abertura_src = repo_root / "abertura.mp4"
     encerramento_src = repo_root / "encerramento.mp4"
@@ -315,22 +359,31 @@ def _add_intro_outro_music(
         logger.info("Nenhum asset encontrado — pulando abertura/encerramento/música.")
         return
 
+    # Calcula offset das legendas = duração da abertura
+    abertura_dur = _ffprobe_duration(abertura_src) if has_abertura else 0.0
+    logger.info(f"Offset das legendas: {abertura_dur:.2f}s (duração da abertura)")
+
+    # Reconstrói ASS com offset pra cobrir todo o vídeo final
+    ass_final = assembly_dir / "subtitles_final.ass"
+    _build_ass(words, ass_final, config, time_offset=abertura_dur)
+
     with tempfile.TemporaryDirectory() as tmp:
         tmpdir = Path(tmp)
         parts_to_concat: List[Path] = []
 
-        # 1. Normaliza e adiciona abertura
+        # 1. Normaliza abertura (com silêncio sintético)
         if has_abertura:
             abertura_norm = tmpdir / "abertura_norm.mp4"
             logger.info("Normalizando abertura...")
             _normalize_clip_for_concat(abertura_src, abertura_norm, config)
             parts_to_concat.append(abertura_norm)
 
-        # 2. Adiciona reflexão (já está no formato certo, mas re-encode pra garantir)
+        # 2. Re-encode reflexão garantindo áudio explícito
         reflexao_norm = tmpdir / "reflexao_norm.mp4"
         logger.info("Normalizando reflexão pra concat...")
         _run_ffmpeg([
             "ffmpeg", "-y", "-i", str(reflexao),
+            "-map", "0:v:0", "-map", "0:a:0",   # força mapear vídeo E áudio explicitamente
             "-c:v", "libx264", "-preset", "medium",
             "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
             "-b:v", "8000k", "-r", str(v.fps),
@@ -339,20 +392,20 @@ def _add_intro_outro_music(
         ])
         parts_to_concat.append(reflexao_norm)
 
-        # 3. Normaliza e adiciona encerramento
+        # 3. Normaliza encerramento (com silêncio sintético)
         if has_encerramento:
             encerramento_norm = tmpdir / "encerramento_norm.mp4"
             logger.info("Normalizando encerramento...")
             _normalize_clip_for_concat(encerramento_src, encerramento_norm, config)
             parts_to_concat.append(encerramento_norm)
 
-        # 4. Concatena tudo
+        # 4. Concatena tudo (agora todos os clipes têm áudio)
         concat_list = tmpdir / "concat_final.txt"
         concat_list.write_text(
             "\n".join(f"file '{p.as_posix()}'" for p in parts_to_concat),
             encoding="utf-8",
         )
-        concatenado = tmpdir / "concatenado.mp4"
+        concatenado_sem_leg = tmpdir / "concatenado_sem_leg.mp4"
         logger.info(f"Concatenando {len(parts_to_concat)} partes...")
         _run_ffmpeg([
             "ffmpeg", "-y", "-f", "concat", "-safe", "0",
@@ -361,35 +414,35 @@ def _add_intro_outro_music(
             "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
             "-b:v", "8000k", "-r", str(v.fps),
             "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
+            concatenado_sem_leg.as_posix(),
+        ])
+
+        # 5. Queima legendas no vídeo concatenado (com offset correto)
+        ass_final_path = str(ass_final.resolve()).replace("\\", "/").replace(":", r"\:")
+        concatenado = tmpdir / "concatenado.mp4"
+        logger.info("Queimando legendas com offset...")
+        _run_ffmpeg([
+            "ffmpeg", "-y", "-i", concatenado_sem_leg.as_posix(),
+            "-vf", f"ass='{ass_final_path}'",
+            "-map", "0:v", "-map", "0:a",
+            "-c:v", "libx264", "-preset", "medium",
+            "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+            "-b:v", "8000k", "-r", str(v.fps),
+            "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-ac", "2",
             concatenado.as_posix(),
         ])
 
-        # 5. Mixa música de fundo (se existir)
+        # 6. Mixa música de fundo
         if has_musica:
-            logger.info("Mixando música de fundo (15% volume)...")
+            logger.info("Mixando música de fundo (narração 100%, música 8%)...")
             video_dur = _ffprobe_duration(concatenado)
 
-            # Verifica se o concatenado tem trilha de áudio
-            probe = subprocess.run(
-                ["ffprobe", "-v", "error", "-select_streams", "a",
-                 "-show_entries", "stream=codec_type",
-                 "-of", "default=noprint_wrappers=1:nokey=1",
-                 concatenado.as_posix()],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            # narração em volume total (1.0), música bem suave (0.08)
+            filter_complex = (
+                "[0:a]volume=1.0[narr];"
+                "[1:a]volume=0.08[music];"
+                "[narr][music]amix=inputs=2:duration=first:dropout_transition=2[aout]"
             )
-            has_audio = "audio" in probe.stdout
-
-            if has_audio:
-                # Mix normal: narração + música de fundo
-                filter_complex = (
-                    "[1:a]volume=0.15[music];"
-                    "[0:a][music]amix=inputs=2:duration=first:dropout_transition=2[aout]"
-                )
-            else:
-                # Sem áudio no vídeo: usa só a música de fundo
-                logger.warning("Vídeo concatenado sem trilha de áudio — usando só música de fundo.")
-                filter_complex = "[1:a]volume=0.15[aout]"
-
             _run_ffmpeg([
                 "ffmpeg", "-y",
                 "-i", concatenado.as_posix(),
@@ -404,7 +457,6 @@ def _add_intro_outro_music(
                 out.as_posix(),
             ])
         else:
-            # Sem música, só move o concatenado pro output final
             import shutil as _shutil
             _shutil.copy2(str(concatenado), str(out))
 
@@ -434,6 +486,7 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     logger.info("Alinhando palavras com Whisper (pode demorar 1-2 min)...")
     words = _align_words(audio_path, config.video.whisper_model)
 
+    # ASS inicial (sem offset) pra mux da reflexão
     srt_path = assembly_dir / "subtitles.srt"
     ass_path = assembly_dir / "subtitles.ass"
     _build_srt(words, srt_path, config.video.max_words_per_caption)
@@ -444,7 +497,7 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     plan = _make_background(audio_duration, clips, background_prep, config)
     save_json(assembly_dir / "clip_plan.json", {"cycle_id": cycle_dir.name, "clips": plan})
 
-    # Vídeo da reflexão (sem abertura/encerramento ainda)
+    # Vídeo da reflexão com legendas (sem abertura/encerramento)
     reflexao_video = assembly_dir / "assembled_video_reflexao.mp4"
     _mux_final(background_prep, ass_path, audio_path, reflexao_video, config)
 
@@ -453,12 +506,17 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     except FileNotFoundError:
         pass
 
-    # Adiciona abertura, encerramento e música de fundo
+    # Adiciona abertura, encerramento, reconstrói legendas com offset e mixa música
     final_video = assembly_dir / "assembled_video.mp4"
-    _add_intro_outro_music(reflexao_video, final_video, config)
+    _add_intro_outro_music(
+        reflexao=reflexao_video,
+        ass_path=ass_path,
+        out=final_video,
+        config=config,
+        words=words,
+        assembly_dir=assembly_dir,
+    )
 
-    # Se a função de intro/outro não gerou o final (assets não existiam),
-    # usa o vídeo da reflexão como final
     if not final_video.exists():
         reflexao_video.rename(final_video)
     else:
