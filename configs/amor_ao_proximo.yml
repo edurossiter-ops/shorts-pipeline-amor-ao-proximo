@@ -86,7 +86,7 @@ story:
   word_count_max: 465
   include_hook: true
 
-  cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se inscreve no canal Amor ao Próximo pro seu versículo diário."
+  cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se você crê em Jesus, se inscreve agora e compartilha — alguém que você ama precisa ouvir isso hoje."
 
   extra_instructions: |
     REGRAS:
@@ -94,29 +94,42 @@ story:
        Família → família. Disciplina → disciplina. Não invente outro tema.
     2. Primeira frase: use LITERAL o "gancho_escolhido" do input.
     3. Fale em segunda pessoa ("você") diretamente com quem ouve.
-    4. Mencione Jesus/Cristo explicitamente. A resposta é sempre Cristo.
+    4. Mencione Jesus/Cristo por nome, frequentemente e com fogo.
     5. NUNCA cite o versículo no texto — ele aparece só no CTA final.
     6. NUNCA use tags em colchetes — o modelo de voz lê literalmente.
     7. Última frase: exatamente o CTA fornecido.
 
     LINGUAGEM JOVEM (obrigatório):
     - Frases curtas. Máximo 15 palavras por frase.
-    - Informal mas não vulgar. "cara", "olha", "sabe", "tipo assim" são ok.
+    - Informal: "cara", "olha", "sabe", "tá", "tô", "pra" são ok.
     - Referências ao cotidiano moderno: ansiedade, redes sociais, comparação,
-      pressão por performance, relacionamentos pelo celular, FOMO, burnout.
-    - Ritmo acelerado — sem enrolação, sem preâmbulo longo.
+      pressão por performance, relacionamentos, FOMO, burnout, domingo à noite.
+    - Ritmo acelerado. Sem enrolação. Sem preâmbulo.
     - Cada parágrafo máximo 3 frases.
 
-    TOM NEOPENTECOSTAL JOVEM (obrigatório):
-    - Use "Jesus" por nome — não só "Senhor" ou "Deus".
-    - Pode usar "Espírito Santo", "unção", "declarar sobre a sua vida".
-    - Energia de culto jovem, não de homilia dominical.
-    - A virada espiritual vem com convicção e fogo, não com gentileza pastoral.
-    - "Você foi feito pra mais do que isso" é o espírito da mensagem.
+    TOM NEOPENTECOSTAL COM FOGO (obrigatório desde o gancho):
+    - PRIMEIRO PARÁGRAFO: já tem que soar neopentecostal — Jesus, Espírito Santo,
+      fé, declaração, vitória. Não espere o meio do texto pra colocar o fogo.
+    - Use "Jesus", "Espírito Santo", "unção", "declarar sobre a sua vida",
+      "a Palavra diz", "ativado", "você foi criado pra mais".
+    - Tom de culto jovem — não de missa. Intensidade de adoração.
+    - A virada espiritual tem fogo e convicção — não gentileza pastoral tímida.
+
+    GANCHOS INTERNOS (obrigatório — mínimo 2 ao longo do texto):
+    Além do gancho inicial, insira pelo menos 2 perguntas ou frases de impacto
+    no meio do texto pra manter o espectador preso:
+    - "Mas sabe o que Jesus fez?" / "E sabe o que Deus diz sobre isso?"
+    - "Você tá ouvindo isso?" / "Isso é pra você agora."
+    - "Para. Respira. Olha pro que Jesus já fez."
+    - Qualquer frase curta e direta que quebre o ritmo e prenda de volta.
 
     ESTRUTURA:
-    Gancho → Dilema específico do versículo → Desenvolver a dor →
-    Perspectiva de Cristo → Oração (4-6 linhas) → CTA
+    Gancho (neopentecostal desde a primeira linha) →
+    Dilema específico do versículo →
+    Desenvolver a dor (com gancho interno) →
+    Perspectiva de Cristo com fogo (com gancho interno) →
+    Oração (4-6 linhas, íntima, direta com Jesus) →
+    CTA com apelo de fé
 
     ARCOS NARRATIVOS PERMITIDOS (escolha um conforme o versículo):
     - Consolo: "você está sofrendo, Jesus está com você agora"
