@@ -2,17 +2,14 @@
 #
 # Fonte de tema: versículos bíblicos (arquivo local configs/versiculos.json).
 # Formato editorial: REFLEXÃO cristã sobre dilemas da vida, NÃO história de personagem.
-#
-# Cálculo da duração:
-#   450 palavras × (60s ÷ 150 palavras/min @ speed 1.20) ÷ aceleração 1.10
-#   = ~164s de vídeo final (margem de 16s antes do limite de 180s/3min)
- 
+# Público-alvo: 20-35 anos, neopentecostal, linguagem jovem e direta.
+
 channel:
   name: "amor_ao_proximo"
   # youtube_channel_id opcional — quando não informado, usa o canal padrão da conta.
   # Como o token OAuth já está amarrado ao canal "Amor ao Próximo", pode deixar comentado.
   # youtube_channel_id: "UCxxxxxxxxxxxxxxxxxxxxx"
- 
+
 # --- Fonte de tema: versículos bíblicos ---
 bible:
   versiculos_file: "configs/versiculos.json"
@@ -34,31 +31,34 @@ bible:
     - "Hoje Deus quer te dizer uma coisa importante sobre o que você está vivendo..."
     - "Deus tem uma mensagem pra você hoje — e ela vai mudar como você vê essa situação..."
   recent_hooks_avoid: 5
- 
+
 # --- Geração da reflexão (Claude) ---
 story:
   language: "Português Brasileiro"
   channel_identity: |
-    Canal "Amor ao Próximo": reflexões cristãs sobre dilemas da vida real.
-    Trata de situações que TODO MUNDO vive — família, trabalho, amizades, amor,
-    perda, dúvida, medo, culpa, esperança — à luz da fé em Jesus Cristo.
- 
-    FORMATO: REFLEXÃO, NÃO HISTÓRIA.
-    Não conte histórias ("uma mulher estava andando na rua...", "João trabalhava...").
-    Fale DIRETAMENTE com a pessoa que está ouvindo, em segunda pessoa ("você").
-    Aborde um DILEMA REAL que ela pode estar vivendo e mostre como o Evangelho
-    oferece um caminho.
- 
-    Tom: profundidade espiritual + humanidade. Acolhedor, mas sem relativizar o
-    pecado. Mostra Cristo como resposta, não como opção filosófica.
-    Linguagem coloquial, emocional, próxima. NÃO doutrinária, NÃO panfletária,
-    NÃO com jargão teológico. Mas também NÃO genérica — cristã de verdade.
- 
-  # Os "pillars" e "themes" aqui não são usados diretamente pela fonte bíblica,
-  # mas ficam como referência editorial sobre o que o canal cobre.
+    Canal "Amor ao Próximo" — reflexões cristãs pra quem tem entre 20 e 35 anos
+    e vive a fé no dia a dia real: relacionamentos, trabalho, redes sociais,
+    ansiedade, propósito, identidade, família, amizades que decepcionam.
+
+    PÚBLICO: jovem adulto neopentecostal brasileiro. Alguém que ouve Elevation
+    Worship no fone enquanto enfrenta segunda de manhã. Que luta com ansiedade
+    mas crê que Jesus é a resposta. Que quer viver ungido mas se sente fraco.
+
+    FORMATO: REFLEXÃO DIRETA, NÃO HISTÓRIA.
+    Fale DIRETO com quem está ouvindo. Segunda pessoa sempre ("você", "te", "teu").
+    Sem "havia uma vez", sem personagens, sem narrativa em terceira pessoa.
+    Fale como alguém de 28 anos que conhece Jesus de verdade — não como pastor
+    de terno lendo da Bíblia. Natural, real, com fogo.
+
+    TOM: neopentecostal jovem. Use "Jesus", "Espírito Santo", "unção", "declarar",
+    "vitória", "ativado", "a Palavra diz". Evite linguagem litúrgica ou clerical.
+    Energia de culto jovem — não de missa. Intensidade de adoração — não de sermão.
+    Acolhedor mas com convicção. Nunca relativiza a fé. Cristo é A resposta, não
+    uma opção entre várias.
+
   allowed_pillars:
     - reflexao_crista
- 
+
   allowed_themes:
     - familia
     - trabalho
@@ -66,10 +66,11 @@ story:
     - amor_e_fe
     - perda_e_luto
     - medo_ansiedade
-    - perdao_reconciliacao
     - proposito_chamado
     - fe_no_cotidiano
- 
+    - identidade_em_cristo
+    - relacionamentos_modernos
+
   forbidden_topics:
     - Proselitismo agressivo ou ataques a outras religiões
     - Conteúdo sectário ou teologicamente polêmico (predestinação, denominações brigando)
@@ -78,14 +79,15 @@ story:
     - Citação literal de versículos bíblicos (o versículo é seed INTERNO, nunca citado)
     - Nomes de pessoas reais, igrejas reais ou denominações específicas
     - Narrativa em terceira pessoa ("João pensou...", "Maria entrou...")
- 
-  duration_target_seconds: 180   # alvo da NARRAÇÃO crua (será acelerada em 1.10x)
+    - Linguagem clerical ou litúrgica (evite "Senhor Todo-Poderoso", "Ó Pai Celestial")
+
+  duration_target_seconds: 180
   word_count_min: 370
   word_count_max: 465
   include_hook: true
- 
+
   cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se inscreve no canal Amor ao Próximo pro seu versículo diário."
- 
+
   extra_instructions: |
     REGRAS:
     1. O VERSÍCULO DO INPUT determina o dilema. Trabalho → fale de trabalho.
@@ -96,53 +98,71 @@ story:
     5. NUNCA cite o versículo no texto — ele aparece só no CTA final.
     6. NUNCA use tags em colchetes — o modelo de voz lê literalmente.
     7. Última frase: exatamente o CTA fornecido.
- 
+
+    LINGUAGEM JOVEM (obrigatório):
+    - Frases curtas. Máximo 15 palavras por frase.
+    - Informal mas não vulgar. "cara", "olha", "sabe", "tipo assim" são ok.
+    - Referências ao cotidiano moderno: ansiedade, redes sociais, comparação,
+      pressão por performance, relacionamentos pelo celular, FOMO, burnout.
+    - Ritmo acelerado — sem enrolação, sem preâmbulo longo.
+    - Cada parágrafo máximo 3 frases.
+
+    TOM NEOPENTECOSTAL JOVEM (obrigatório):
+    - Use "Jesus" por nome — não só "Senhor" ou "Deus".
+    - Pode usar "Espírito Santo", "unção", "declarar sobre a sua vida".
+    - Energia de culto jovem, não de homilia dominical.
+    - A virada espiritual vem com convicção e fogo, não com gentileza pastoral.
+    - "Você foi feito pra mais do que isso" é o espírito da mensagem.
+
     ESTRUTURA:
     Gancho → Dilema específico do versículo → Desenvolver a dor →
     Perspectiva de Cristo → Oração (4-6 linhas) → CTA
- 
+
     ARCOS NARRATIVOS PERMITIDOS (escolha um conforme o versículo):
-    - Consolo: "você está sofrendo, Deus está com você"
-    - Esperança: "sua situação vai mudar, Deus tem um plano"
-    - Identidade: "você é filho de Deus, pare de se diminuir"
-    - Chamado: "Deus te criou com um propósito, não desperdice"
-    - Gratidão: "olha o que Deus já fez na sua vida"
-    - Vitória: "em Cristo você já venceu, ande como vencedor"
- 
-    PROIBIDO: narrativa em terceira pessoa, jargão teológico,
+    - Consolo: "você está sofrendo, Jesus está com você agora"
+    - Esperança: "sua situação vai virar, Deus está trabalhando"
+    - Identidade: "você é filho de Deus, para de andar como órfão"
+    - Chamado: "você foi ungido com um propósito, não desperdice"
+    - Gratidão: "abre os olhos pro que Jesus já fez na sua vida"
+    - Vitória: "em Cristo você já venceu, anda como vencedor"
+
+    PROIBIDO: narrativa em terceira pessoa, jargão teológico clerical,
     teologia da prosperidade, autoajuda genérica sem Cristo,
-    qualquer arco de culpa/arrependimento/perdão.
- 
+    qualquer arco de culpa/arrependimento/perdão,
+    linguagem de missa ou liturgia católica.
+
   model: "claude-sonnet-4-20250514"
   max_tokens: 4000
   temperature: 0.85
- 
+
 # --- Narração (ElevenLabs) ---
 narration:
   voice_id: "xsSg7GkDPDhaGZpbKOLn"
-  model_id: "eleven_multilingual_v2"   # melhor pra português + speed do que eleven_v3
-  speed: 1.20                           # máximo do ElevenLabs sem ficar robótico
+  model_id: "eleven_multilingual_v2"
+  speed: 1.20
   max_chars_per_call: 4999
- 
+
 # --- Seleção visual (Pexels) ---
 visual:
   queries:
-    # Cenas contemplativas, espirituais, naturais — combinam com tom reflexivo
-    - "sunset clouds golden hour"
-    - "praying hands close up"
-    - "candle flame slow"
-    - "open bible pages wind"
-    - "church window light"
-    - "mountain peaceful sunrise"
-    - "ocean waves slow motion"
-    - "forest light rays"
-    - "field wheat golden"
-    - "white dove flying slow"
-    - "rosary beads close up"
-    - "wooden cross silhouette"
-    - "rain window reflection"
-    - "person walking sunset silhouette"
-    - "candle church interior"
+    # Natureza impactante — universal, não denominacional
+    - "mountain sunrise dramatic"
+    - "ocean waves powerful slow motion"
+    - "forest light rays morning"
+    - "field golden hour wide"
+    - "storm clouds breaking light"
+    # Pessoas jovens e fé — neutro, abraça evangélicos e neopentecostais
+    - "young person praying hands open"
+    - "person arms open worship field"
+    - "young woman eyes closed peaceful"
+    - "group young people worship hands raised"
+    - "person silhouette sunset arms open"
+    # Luz e esperança — cinematográfico
+    - "light beam through clouds dramatic"
+    - "sunrise horizon hope"
+    - "golden light rays sky"
+    - "sun breaking through dark clouds"
+    - "city lights night reflection"
   min_clip_seconds: 5
   max_clip_seconds: 15
   max_clips_per_query: 2
@@ -161,21 +181,26 @@ visual:
     - drugs
     - smoking
     - violence
- 
+    - rosary
+    - catholic
+    - church interior
+    - candle altar
+    - cross gothic
+
 # --- Montagem do vídeo (FFmpeg) ---
 video:
   target_width: 1080
   target_height: 1920
   fps: 30
-  final_speed_multiplier: 1.0    # sem aceleração — vídeo fica ~2min 20s com 420 palavras
-  font_name: "Georgia"            # fonte mais serena e clássica
+  final_speed_multiplier: 1.0
+  font_name: "Georgia"
   font_size: 76
-  max_words_per_caption: 4        # legendas mais curtas, ritmo contemplativo
+  max_words_per_caption: 4
   whisper_model: "small"
- 
+
 # --- Publicação no YouTube ---
 youtube:
-  category_id: "22"        # People & Blogs (também serve "29" Nonprofits & Activism)
+  category_id: "22"
   privacy_status: "public"
   tags:
     - "fe"
@@ -185,11 +210,13 @@ youtube:
     - "evangelho"
     - "reflexao crista"
     - "amor ao proximo"
+    - "neopentecostal"
+    - "jovens cristãos"
     - "shorts"
   made_for_kids: false
   default_language: "pt"
   default_audio_language: "pt"
- 
+
 # --- Retry ---
 retry:
   max_attempts_per_step: 3
