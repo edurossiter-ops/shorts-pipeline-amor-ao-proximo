@@ -136,7 +136,10 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
         raise PermanentError("story_text_formatted.txt está vazio.")
 
     # Lê API key do Google TTS
-    api_key = config.secrets.get("GOOGLE_TTS_API_KEY", required=True)
+    import os
+    api_key = os.environ.get("GOOGLE_TTS_API_KEY")
+    if not api_key:
+        raise PermanentError("Variável de ambiente GOOGLE_TTS_API_KEY não definida.")
 
     # Google TTS aceita até 5000 chars por chamada
     parts = _split_text(text, 4900)
