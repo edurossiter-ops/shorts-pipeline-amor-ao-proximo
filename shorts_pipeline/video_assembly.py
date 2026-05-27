@@ -1,8 +1,11 @@
 """
 Etapa 5: Montagem final do vídeo via FFmpeg.
 
-Abertura e encerramento são tratados como clipes normais de background —
-entram no início e fim da lista de clipes, sem processamento especial.
+Efeitos nas imagens (método do canal de referência):
+- Cada clipe: exatamente 10 segundos
+- Espelhamento horizontal (hflip) — camuflagem de conteúdo repetitivo
+- Velocidade 0.7x — mais lento, atmosfera contemplativa
+- Efeito vignette (aureola suave nas bordas)
 """
 from __future__ import annotations
 
@@ -125,7 +128,6 @@ def _build_srt(words: List[TimedWord], out: Path, max_per_caption: int) -> None:
 
 def _build_ass(words: List[TimedWord], out: Path, config: PipelineConfig) -> None:
     v = config.video
-    # Fonte maior, alinhamento topo-centro (8), margem do topo
     font_size = int(v.font_size * 1.1)
     header = f"""[Script Info]
 ScriptType: v4.00+
@@ -168,36 +170,48 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
 def _list_clips(
     background_json: Dict[str, Any],
     visual_dir: Path,
-    abertura: Optional[Path] = None,
-    encerramento: Optional[Path] = None,
 ) -> List[Dict[str, Any]]:
-    """
-    Monta a lista de clipes de background.
-    Se abertura/encerramento existirem, entram como primeiro e último clipe.
-    São tratados exatamente igual aos clipes do Pexels.
-    """
+    """Monta lista de clipes do Pexels."""
     clips = []
-
-    # Abertura entra primeiro
-    if abertura and abertura.exists():
-        dur = _ffprobe_duration(abertura)
-        clips.append({"path": str(abertura), "duration": dur})
-
-    # Clipes do Pexels
     for c in background_json.get("clips", []):
         p = Path(c.get("clip_file_path") or (visual_dir / c["clip_file"]))
         if not p.exists():
             raise PermanentError(f"Clipe não encontrado: {p}")
         clips.append({"path": str(p), "duration": float(c["duration_seconds"])})
-
-    # Encerramento entra por último
-    if encerramento and encerramento.exists():
-        dur = _ffprobe_duration(encerramento)
-        clips.append({"path": str(encerramento), "duration": dur})
-
     if not clips:
         raise PermanentError("Lista de clipes vazia.")
     return clips
+
+
+def _build_vf(config: PipelineConfig, clip_speed: float) -> str:
+    """
+    Monta o filtro de vídeo pra cada clipe com os efeitos do método:
+    - scale + crop (resolução alvo)
+    - hflip (espelhar horizontalmente) — camuflagem
+    - setpts (velocidade 0.7x) — atmosfera contemplativa
+    - vignette (aureola suave nas bordas)
+    - fps + format
+    """
+    v = config.video
+
+    filters = [
+        f"scale={v.target_width}:{v.target_height}:force_original_aspect_ratio=increase",
+        f"crop={v.target_width}:{v.target_height}",
+        "setsar=1",
+    ]
+
+    if getattr(v, "hflip", True):
+        filters.append("hflip")
+
+    if clip_speed != 1.0:
+        filters.append(f"setpts={1.0/clip_speed:.4f}*PTS")
+
+    if getattr(v, "vignette", True):
+        filters.append("vignette=PI/4:eval=init")
+
+    filters += [f"fps={v.fps}", "format=yuv420p"]
+
+    return ",".join(filters)
 
 
 def _make_background(
@@ -205,52 +219,49 @@ def _make_background(
     clips: List[Dict[str, Any]],
     out_path: Path,
     config: PipelineConfig,
-    abertura_dur: float = 0.0,
 ) -> List[Dict[str, Any]]:
     """
-    Monta o background completo: abertura (se houver) + clipes Pexels em loop + encerramento (se houver).
-    O background precisa ter exatamente a duração do áudio.
-    Abertura e encerramento entram completos; os clipes do meio preenchem o restante.
+    Monta o background com os efeitos do método:
+    - Cada clipe dura exatamente clip_duration_seconds (10s)
+    - Velocidade clip_speed (0.7x)
+    - hflip + vignette aplicados
     """
     v = config.video
-    logger = get_logger()
-
-    # Separa abertura, meio e encerramento
-    abertura_clip = clips[0] if clips and clips[0].get("is_abertura") else None
-    encerramento_clip = clips[-1] if clips and clips[-1].get("is_encerramento") else None
-
-    # Recalcula: usa todos os clipes da lista (abertura já está incluída com duração real)
-    # O background total precisa cobrir audio_duration * speed
     target = audio_duration * v.final_speed_multiplier
+
+    clip_dur = getattr(v, "clip_duration_seconds", 10.0)
+    clip_speed = getattr(v, "clip_speed", 0.7)
+    input_dur = clip_dur / clip_speed  # segundos de input pra gerar clip_dur de output
+
+    vf = _build_vf(config, clip_speed)
 
     plan: List[Dict[str, Any]] = []
     remaining = target
     i = 0
-    while remaining > 0.01 and i < len(clips) * 10:
-        c = clips[i % len(clips)]
-        use = min(c["duration"], remaining)
-        plan.append({"path": c["path"], "used_duration": use})
-        remaining -= use
-        i += 1
 
     with tempfile.TemporaryDirectory() as tmp:
         tmpdir = Path(tmp)
         segments: List[Path] = []
 
-        for idx, item in enumerate(plan, start=1):
-            seg = tmpdir / f"seg_{idx:03d}.mp4"
+        while remaining > 0.01 and i < len(clips) * 100:
+            c = clips[i % len(clips)]
+            use_output = min(clip_dur, remaining)
+            use_input = use_output / clip_speed
+
+            seg = tmpdir / f"seg_{i:04d}.mp4"
             _run_ffmpeg([
-                "ffmpeg", "-y", "-ss", "0", "-i", item["path"],
-                "-map", "0:v:0", "-t", f"{item['used_duration']:.3f}",
-                "-vf",
-                f"scale={v.target_width}:{v.target_height}:force_original_aspect_ratio=increase,"
-                f"crop={v.target_width}:{v.target_height},setsar=1,fps={v.fps},format=yuv420p",
+                "ffmpeg", "-y", "-ss", "0", "-i", c["path"],
+                "-t", f"{use_input:.3f}",
+                "-vf", vf,
                 "-an", "-c:v", "libx264", "-preset", "medium",
                 "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
                 "-b:v", "8000k", "-maxrate", "8000k", "-bufsize", "16000k",
                 "-r", str(v.fps), seg.as_posix(),
             ])
             segments.append(seg)
+            plan.append({"path": c["path"], "used_duration": use_output})
+            remaining -= use_output
+            i += 1
 
         concat_list = tmpdir / "concat.txt"
         concat_list.write_text(
@@ -276,10 +287,6 @@ def _mux_final(
     config: PipelineConfig,
     musica: Optional[Path] = None,
 ) -> None:
-    """
-    Mux final: background + legendas + narração + música de fundo opcional.
-    Tudo em um único comando FFmpeg.
-    """
     v = config.video
     ass_path = str(ass.resolve()).replace("\\", "/").replace(":", r"\:")
     speed = v.final_speed_multiplier
@@ -287,7 +294,6 @@ def _mux_final(
     af_narr = f"atempo={speed}" if speed != 1.0 else "anull"
 
     if musica and musica.exists():
-        # Com música: narração (100%) + música de fundo (8%)
         _run_ffmpeg([
             "ffmpeg", "-y",
             "-i", str(background),
@@ -307,7 +313,6 @@ def _mux_final(
             "-shortest", out.as_posix(),
         ])
     else:
-        # Sem música: só narração
         _run_ffmpeg([
             "ffmpeg", "-y", "-i", str(background), "-i", str(audio),
             "-filter:v", vf, "-filter:a", af_narr,
@@ -339,20 +344,10 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     narration_meta = load_json(narration_json_path)
     background_data = load_json(background_json_path)
 
-    # Assets opcionais na raiz do repositório
     repo_root = Path.cwd()
-    abertura = repo_root / "abertura.mp4"
-    encerramento = repo_root / "encerramento.mp4"
     musica = repo_root / "musica_fundo.mp3"
-
-    has_abertura = abertura.exists()
-    has_encerramento = encerramento.exists()
     has_musica = musica.exists()
-    logger.info(
-        f"Assets: abertura={'✓' if has_abertura else '✗'} | "
-        f"encerramento={'✓' if has_encerramento else '✗'} | "
-        f"música={'✓' if has_musica else '✗'}"
-    )
+    logger.info(f"Música de fundo: {'✓' if has_musica else '✗'}")
 
     audio_duration = float(MP3(audio_path).info.length)
     logger.info("Alinhando palavras com Whisper (pode demorar 1-2 min)...")
@@ -363,18 +358,12 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     _build_srt(words, srt_path, config.video.max_words_per_caption)
     _build_ass(words, ass_path, config)
 
-    # Monta lista de clipes: abertura + Pexels + encerramento (todos iguais)
-    clips = _list_clips(
-        background_data, visual_dir,
-        abertura=abertura if has_abertura else None,
-        encerramento=encerramento if has_encerramento else None,
-    )
+    clips = _list_clips(background_data, visual_dir)
 
     background_prep = assembly_dir / "assembled_video_background.mp4"
     plan = _make_background(audio_duration, clips, background_prep, config)
     save_json(assembly_dir / "clip_plan.json", {"cycle_id": cycle_dir.name, "clips": plan})
 
-    # Mux final: background + legendas + narração + música (tudo junto, um comando)
     final_video = assembly_dir / "assembled_video.mp4"
     _mux_final(
         background=background_prep,
@@ -401,8 +390,6 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
         "video_duration_seconds": round(final_duration, 3),
         "final_speed_multiplier": config.video.final_speed_multiplier,
         "clip_count_used": len(plan),
-        "has_abertura": has_abertura,
-        "has_encerramento": has_encerramento,
         "has_musica_fundo": has_musica,
         "status": "success",
         "generated_at": now_iso(),
