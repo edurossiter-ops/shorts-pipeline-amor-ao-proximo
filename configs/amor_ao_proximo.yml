@@ -1,63 +1,52 @@
-# Canal "Amor ao Próximo" — reflexões cristãs sobre dilemas do dia a dia.
+# Canal "Amor ao Próximo" — orações guiadas sobre temas da vida cristã.
 #
 # Fonte de tema: versículos bíblicos (arquivo local configs/versiculos.json).
-# Formato editorial: REFLEXÃO cristã sobre dilemas da vida, NÃO história de personagem.
+# Formato editorial: ORAÇÃO GUIADA — a pessoa ora junto com o vídeo.
 # Público-alvo: 20-35 anos, neopentecostal, linguagem jovem e direta.
 
 channel:
   name: "amor_ao_proximo"
-  # youtube_channel_id opcional — quando não informado, usa o canal padrão da conta.
-  # Como o token OAuth já está amarrado ao canal "Amor ao Próximo", pode deixar comentado.
-  # youtube_channel_id: "UCxxxxxxxxxxxxxxxxxxxxx"
 
 # --- Fonte de tema: versículos bíblicos ---
 bible:
   versiculos_file: "configs/versiculos.json"
-  # Lista de ganchos de abertura — todos mencionam Deus ou Jesus explicitamente
-  # pra sinalizar imediatamente que é conteúdo cristão.
-  # Categoria 1 (sutis): curiosidade + Deus
-  # Categoria 2 (diretos): cristão explícito desde a primeira frase
   ganchos:
-    # Categoria 1 — Curiosidade + Deus (mais sutil)
-    - "E se o que você está passando tivesse um propósito maior nas mãos de Deus?"
-    - "Talvez Jesus tenha colocado este vídeo no seu caminho por um motivo..."
-    - "Quantas vezes você já pediu um sinal a Deus sem receber resposta?"
-    - "Existe uma razão pra você estar ouvindo isso agora — e Deus sabe qual é..."
-    - "Esta reflexão talvez seja a resposta que você pediu em oração..."
-    # Categoria 2 — Direto e cristão (explícito)
-    - "Jesus tem algo pra te dizer sobre essa fase que você está vivendo..."
-    - "Deus não desperdiça nenhuma dor na sua vida — e eu vou te mostrar por quê..."
-    - "Você já se perguntou por que Deus permite que coisas difíceis aconteçam com quem Ele ama?"
-    - "Hoje Deus quer te dizer uma coisa importante sobre o que você está vivendo..."
-    - "Deus tem uma mensagem pra você hoje — e ela vai mudar como você vê essa situação..."
+    # Categoria 1 — Convite à oração (sutil)
+    - "Para tudo que você tá carregando. Respira. E ora comigo agora."
+    - "Se você tá precisando de um encontro com Jesus, esse momento é seu."
+    - "Deus está te chamando pra orar agora — não importa onde você tá."
+    - "Fecha os olhos por um segundo. Jesus quer falar com você."
+    - "Antes de continuar o seu dia, para e ora comigo."
+    # Categoria 2 — Direto e neopentecostal
+    - "Em nome de Jesus, vou orar sobre algo que você tá vivendo agora."
+    - "Hoje o Espírito Santo me colocou uma oração no coração pra você."
+    - "Você não tá aqui por acaso. Deus preparou essa oração pra você."
+    - "Isso que você tá sentindo — Jesus quer tocar agora. Ora comigo."
+    - "Não feche esse vídeo. Deus tem uma palavra pra você nessa oração."
   recent_hooks_avoid: 5
 
-# --- Geração da reflexão (Claude) ---
+# --- Geração da oração (Claude) ---
 story:
   language: "Português Brasileiro"
   channel_identity: |
-    Canal "Amor ao Próximo" — reflexões cristãs pra quem tem entre 20 e 35 anos
-    e vive a fé no dia a dia real: relacionamentos, trabalho, redes sociais,
-    ansiedade, propósito, identidade, família, amizades que decepcionam.
+    Canal "Amor ao Próximo" — orações guiadas pra jovens cristãos de 20 a 35 anos.
+    O espectador ORA JUNTO com o vídeo. Não assiste — participa.
 
-    PÚBLICO: jovem adulto neopentecostal brasileiro. Alguém que ouve Elevation
-    Worship no fone enquanto enfrenta segunda de manhã. Que luta com ansiedade
-    mas crê que Jesus é a resposta. Que quer viver ungido mas se sente fraco.
+    PÚBLICO: jovem neopentecostal brasileiro. Acorda ansioso, vai pro trabalho
+    com fone, luta com relacionamentos, sente que a fé tá fraca às vezes.
+    Mas crê em Jesus de verdade e quer orar — só precisa de alguém pra guiar.
 
-    FORMATO: REFLEXÃO DIRETA, NÃO HISTÓRIA.
-    Fale DIRETO com quem está ouvindo. Segunda pessoa sempre ("você", "te", "teu").
-    Sem "havia uma vez", sem personagens, sem narrativa em terceira pessoa.
-    Fale como alguém de 28 anos que conhece Jesus de verdade — não como pastor
-    de terno lendo da Bíblia. Natural, real, com fogo.
+    FORMATO: ORAÇÃO GUIADA — primeira pessoa do plural ou convite direto.
+    "Senhor, eu te peço...", "Pai, toca nessa pessoa...", "Jesus, declaro..."
+    A pessoa que está ouvindo ORA JUNTO. Ela não é espectadora — é participante.
+    É como se um amigo de fé estivesse orando ao lado dela.
 
-    TOM: neopentecostal jovem. Use "Jesus", "Espírito Santo", "unção", "declarar",
-    "vitória", "ativado", "a Palavra diz". Evite linguagem litúrgica ou clerical.
-    Energia de culto jovem — não de missa. Intensidade de adoração — não de sermão.
-    Acolhedor mas com convicção. Nunca relativiza a fé. Cristo é A resposta, não
-    uma opção entre várias.
+    TOM: neopentecostal jovem, íntimo, com fogo e ternura ao mesmo tempo.
+    Use "Jesus", "Pai", "Espírito Santo", "declarar", "ungir", "vitória".
+    Energia de momento de oração num culto jovem — presente, real, emocional.
 
   allowed_pillars:
-    - reflexao_crista
+    - oracao_guiada
 
   allowed_themes:
     - familia
@@ -73,87 +62,79 @@ story:
 
   forbidden_topics:
     - Proselitismo agressivo ou ataques a outras religiões
-    - Conteúdo sectário ou teologicamente polêmico (predestinação, denominações brigando)
-    - Promessas de cura ou milagre vinculados a pagamento (teologia da prosperidade)
-    - Suicídio, aborto, violência ou drogas como ato explícito (pode ser referência indireta)
-    - Citação literal de versículos bíblicos (o versículo é seed INTERNO, nunca citado)
+    - Teologia da prosperidade (promessas de cura vinculadas a pagamento)
+    - Suicídio, aborto, violência ou drogas como ato explícito
+    - Citação literal de versículos bíblicos (o versículo é seed INTERNO)
     - Nomes de pessoas reais, igrejas reais ou denominações específicas
     - Narrativa em terceira pessoa ("João pensou...", "Maria entrou...")
-    - Linguagem clerical ou litúrgica (evite "Senhor Todo-Poderoso", "Ó Pai Celestial")
+    - Linguagem clerical ou litúrgica católica
 
   duration_target_seconds: 180
   word_count_min: 370
-  word_count_max: 465
+  word_count_max: 450
   include_hook: true
 
-  cta_text: "A reflexão de hoje foi inspirada em {versiculo_ref}. Se você crê em Jesus, se inscreve agora e compartilha — alguém que você ama precisa ouvir isso hoje."
+  cta_text: "Essa oração foi inspirada em {versiculo_ref}. Se você crê em Jesus, escreve AMÉM aqui embaixo e compartilha — alguém que você ama precisa orar isso hoje."
 
   extra_instructions: |
     REGRAS:
-    1. O VERSÍCULO DO INPUT determina o dilema. Trabalho → fale de trabalho.
-       Família → família. Disciplina → disciplina. Não invente outro tema.
+    1. O VERSÍCULO DO INPUT determina o TEMA da oração. Trabalho → ora sobre trabalho.
+       Família → ora sobre família. Identidade → ora sobre identidade. Não invente.
     2. Primeira frase: use LITERAL o "gancho_escolhido" do input.
-    3. Fale em segunda pessoa ("você") diretamente com quem ouve.
-    4. Mencione Jesus/Cristo por nome, frequentemente e com fogo.
-    5. NUNCA cite o versículo no texto — ele aparece só no CTA final.
-    6. NUNCA use tags em colchetes — o modelo de voz lê literalmente.
-    7. Última frase: exatamente o CTA fornecido.
+    3. A oração é GUIADA — o espectador ora junto. Use "Senhor, eu te peço",
+       "Pai, eu declaro", "Jesus, toca em mim agora", "Espírito Santo, vem".
+    4. NUNCA cite o versículo no texto — ele aparece só no CTA final.
+    5. NUNCA use tags em colchetes — o modelo de voz lê literalmente.
+    6. Última frase: exatamente o CTA fornecido.
 
-    LINGUAGEM JOVEM (obrigatório):
+    ESTRUTURA DA ORAÇÃO (6 partes):
+    1. GANCHO (primeira frase — literal do input)
+       Convida a pessoa a parar e orar. Tom de presença.
+
+    2. ABERTURA DA ORAÇÃO
+       Começa a orar de verdade. "Pai, eu venho diante de ti..."
+       Nomeia o tema específico do versículo.
+
+    3. PRIMEIRA CTA PARTICIPATIVA (após ~80 palavras)
+       Interrompe brevemente pra engajar: "Se você tá sentindo isso,
+       escreve aqui: EU CREIO. Deus tá ouvindo você agora."
+       Ou: "Diz comigo em voz alta: Eu confio em ti, Jesus."
+
+    4. NÚCLEO DA ORAÇÃO
+       O coração da oração — o pedido específico, a declaração de fé,
+       a entrega. Tom mais intenso. Jesus presente e poderoso.
+
+    5. SEGUNDA CTA PARTICIPATIVA (após ~200 palavras)
+       Outro momento de engajamento: "Escreve AMÉM se você recebeu."
+       Ou: "Compartilha com alguém que precisa dessa oração agora."
+
+    6. ENCERRAMENTO + CTA FINAL
+       Fecha a oração com gratidão e vitória. Depois o CTA exato fornecido.
+
+    TOM NEOPENTECOSTAL (obrigatório):
+    - Use "Jesus", "Pai", "Espírito Santo" por nome, frequentemente.
+    - "Declaro", "decreto", "confesso", "recebo por fé" — linguagem de fé ativa.
     - Frases curtas. Máximo 15 palavras por frase.
-    - Informal: "cara", "olha", "sabe", "tá", "tô", "pra" são ok.
-    - Referências ao cotidiano moderno: ansiedade, redes sociais, comparação,
-      pressão por performance, relacionamentos, FOMO, burnout, domingo à noite.
-    - Ritmo acelerado. Sem enrolação. Sem preâmbulo.
     - Cada parágrafo máximo 3 frases.
+    - Energia de culto jovem — não de missa.
 
-    TOM NEOPENTECOSTAL COM FOGO (obrigatório desde o gancho):
-    - PRIMEIRO PARÁGRAFO: já tem que soar neopentecostal — Jesus, Espírito Santo,
-      fé, declaração, vitória. Não espere o meio do texto pra colocar o fogo.
-    - Use "Jesus", "Espírito Santo", "unção", "declarar sobre a sua vida",
-      "a Palavra diz", "ativado", "você foi criado pra mais".
-    - Tom de culto jovem — não de missa. Intensidade de adoração.
-    - A virada espiritual tem fogo e convicção — não gentileza pastoral tímida.
-
-    GANCHOS INTERNOS (obrigatório — mínimo 2 ao longo do texto):
-    Além do gancho inicial, insira pelo menos 2 perguntas ou frases de impacto
-    no meio do texto pra manter o espectador preso:
-    - "Mas sabe o que Jesus fez?" / "E sabe o que Deus diz sobre isso?"
-    - "Você tá ouvindo isso?" / "Isso é pra você agora."
-    - "Para. Respira. Olha pro que Jesus já fez."
-    - Qualquer frase curta e direta que quebre o ritmo e prenda de volta.
-
-    ESTRUTURA:
-    Gancho (neopentecostal desde a primeira linha) →
-    Dilema específico do versículo →
-    Desenvolver a dor (com gancho interno) →
-    Perspectiva de Cristo com fogo (com gancho interno) →
-    Oração (4-6 linhas, íntima, direta com Jesus) →
-    CTA com apelo de fé
-
-    ARCOS NARRATIVOS PERMITIDOS (escolha um conforme o versículo):
-    - Consolo: "você está sofrendo, Jesus está com você agora"
-    - Esperança: "sua situação vai virar, Deus está trabalhando"
-    - Identidade: "você é filho de Deus, para de andar como órfão"
-    - Chamado: "você foi ungido com um propósito, não desperdice"
-    - Gratidão: "abre os olhos pro que Jesus já fez na sua vida"
-    - Vitória: "em Cristo você já venceu, anda como vencedor"
-
-    PROIBIDO: narrativa em terceira pessoa, jargão teológico clerical,
-    teologia da prosperidade, autoajuda genérica sem Cristo,
-    qualquer arco de culpa/arrependimento/perdão,
-    linguagem de missa ou liturgia católica.
+    PROIBIDO: reflexão filosófica passiva, jargão teológico clerical,
+    teologia da prosperidade, autoajuda sem Cristo, linguagem litúrgica católica,
+    qualquer arco de culpa/punição/arrependimento como tema central.
 
   model: "claude-sonnet-4-20250514"
   max_tokens: 4000
   temperature: 0.85
 
-# --- Narração (ElevenLabs) ---
+# --- Narração (Google TTS) ---
 narration:
-  voice_id: "xsSg7GkDPDhaGZpbKOLn"
-  model_id: "eleven_multilingual_v2"
-  speed: 1.20
-  max_chars_per_call: 4999
+  # Google TTS não usa voice_id/model_id como ElevenLabs
+  # A configuração de voz está hardcoded em narration.py (pt-BR-Neural2-B)
+  # Esses campos ficam aqui como referência mas não são usados pelo Google TTS
+  voice_id: "pt-BR-Neural2-B"
+  model_id: "google_tts_gemini"
+  speed: 1.1
+  max_chars_per_call: 4900
 
 # --- Seleção visual (Pexels) ---
 visual:
@@ -164,13 +145,13 @@ visual:
     - "forest light rays morning"
     - "field golden hour wide"
     - "storm clouds breaking light"
-    # Pessoas jovens e fé — neutro, abraça evangélicos e neopentecostais
+    # Pessoas jovens e fé
     - "young person praying hands open"
     - "person arms open worship field"
     - "young woman eyes closed peaceful"
     - "group young people worship hands raised"
     - "person silhouette sunset arms open"
-    # Luz e esperança — cinematográfico
+    # Luz e esperança
     - "light beam through clouds dramatic"
     - "sunrise horizon hope"
     - "golden light rays sky"
@@ -206,25 +187,29 @@ video:
   target_height: 1920
   fps: 30
   final_speed_multiplier: 1.0
-  font_name: "Georgia"
-  font_size: 76
+  font_name: "Montserrat"      # igual ao canal do vídeo — mais moderno
+  font_size: 80                # ligeiramente maior
   max_words_per_caption: 4
   whisper_model: "small"
+  # Efeitos nas imagens (igual ao método do vídeo de referência)
+  clip_duration_seconds: 10    # cada clipe exatamente 10 segundos
+  clip_speed: 0.7              # levemente mais lento (camuflagem + atmosfera)
+  hflip: true                  # espelhar horizontalmente (camuflagem)
+  vignette: true               # efeito aureola suave nas bordas
 
 # --- Publicação no YouTube ---
 youtube:
   category_id: "22"
   privacy_status: "public"
   tags:
-    - "fe"
-    - "deus"
+    - "oracao"
     - "jesus"
-    - "cristao"
-    - "evangelho"
-    - "reflexao crista"
-    - "amor ao proximo"
+    - "deus"
+    - "oracao guiada"
+    - "oracao do dia"
     - "neopentecostal"
     - "jovens cristãos"
+    - "amor ao proximo"
     - "shorts"
   made_for_kids: false
   default_language: "pt"
