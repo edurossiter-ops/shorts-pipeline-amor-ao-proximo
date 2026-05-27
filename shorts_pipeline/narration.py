@@ -1,15 +1,12 @@
 """
-Etapa 3: Narração via ElevenLabs.
+Etapa 3: Narração via Google Cloud Text-to-Speech (Gemini 2.5 Flash).
 
-Refatorado para:
-- voice_id, model_id, speed via config
-- API key via env var
-- Retry com classificação de erro
-- Divisão automática de textos longos em múltiplas chamadas
-- Concatenação via ffmpeg
+Substituição do ElevenLabs por Google TTS gratuito.
+Modelo: Gemini 2.5 Flash (pt-BR-Neural2-B voz masculina)
 """
 from __future__ import annotations
 
+import base64
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List
@@ -24,6 +21,12 @@ from .utils import (
     now_iso,
     save_json,
 )
+
+GOOGLE_TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
+
+# Voz masculina neural em português brasileiro
+VOICE_NAME = "pt-BR-Neural2-B"
+LANGUAGE_CODE = "pt-BR"
 
 
 def _split_text(text: str, max_chars: int) -> List[str]:
@@ -47,7 +50,6 @@ def _split_text(text: str, max_chars: int) -> List[str]:
     if current:
         parts.append("\n\n".join(current))
 
-    # segurança extra: quebra brutalmente se necessário
     final: List[str] = []
     for part in parts:
         if len(part) <= max_chars:
@@ -58,25 +60,43 @@ def _split_text(text: str, max_chars: int) -> List[str]:
     return final
 
 
-def _call_elevenlabs(config: PipelineConfig, text: str) -> bytes:
-    api_key = config.secrets.get(config.secrets.elevenlabs_api_key_env, required=True)
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{config.narration.voice_id}"
+def _call_google_tts(api_key: str, text: str) -> bytes:
+    """
+    Chama Google TTS e retorna bytes do MP3.
+    Usa modelo Gemini 2.5 Flash com voz neural pt-BR.
+    """
+    url = f"{GOOGLE_TTS_URL}?key={api_key}"
 
-    headers = {
-        "xi-api-key": api_key,
-        "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
-    }
     payload = {
-        "text": text,
-        "model_id": config.narration.model_id,
-        "voice_settings": {"speed": config.narration.speed},
+        "input": {"text": text},
+        "voice": {
+            "languageCode": LANGUAGE_CODE,
+            "name": VOICE_NAME,
+        },
+        "audioConfig": {
+            "audioEncoding": "MP3",
+            "speakingRate": 1.1,   # levemente mais rápido — tom de oração com energia
+            "pitch": -2.0,         # voz um pouco mais grave — tom solene e masculino
+        },
     }
 
     resp = http_request_with_retry(
-        "POST", url, headers=headers, json=payload, timeout=240, max_attempts=4, initial_delay=5.0
+        "POST", url,
+        headers={"Content-Type": "application/json"},
+        json=payload,
+        timeout=120,
+        max_attempts=3,
+        initial_delay=3.0,
     )
-    return resp.content
+
+    data = resp.json()
+
+    if "audioContent" not in data:
+        raise PermanentError(
+            f"Google TTS não retornou audioContent. Resposta: {data}"
+        )
+
+    return base64.b64decode(data["audioContent"])
 
 
 def _concat_mp3(parts: List[Path], final: Path) -> None:
@@ -115,13 +135,17 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
     if not text:
         raise PermanentError("story_text_formatted.txt está vazio.")
 
-    parts = _split_text(text, config.narration.max_chars_per_call)
+    # Lê API key do Google TTS
+    api_key = config.secrets.get("GOOGLE_TTS_API_KEY", required=True)
+
+    # Google TTS aceita até 5000 chars por chamada
+    parts = _split_text(text, 4900)
     logger.info(f"Texto de {len(text)} chars dividido em {len(parts)} parte(s).")
 
     audio_parts: List[Path] = []
     for i, part in enumerate(parts, start=1):
         logger.info(f"Gerando narração parte {i}/{len(parts)} ({len(part)} chars)")
-        audio = _call_elevenlabs(config, part)
+        audio = _call_google_tts(api_key, part)
         p = narration_dir / f"narration_part_{i:02d}.mp3"
         p.write_bytes(audio)
         audio_parts.append(p)
@@ -136,10 +160,9 @@ def run(cycle_dir: Path, config: PipelineConfig) -> Dict[str, Any]:
         "cycle_id": cycle_dir.name,
         "audio_file": "narration_asset.mp3",
         "audio_file_path": str(final_audio),
-        "voice_provider": "elevenlabs",
-        "voice_id": config.narration.voice_id,
-        "model_id": config.narration.model_id,
-        "speed": config.narration.speed,
+        "voice_provider": "google_tts",
+        "voice_name": VOICE_NAME,
+        "language_code": LANGUAGE_CODE,
         "duration_seconds": round(duration, 3),
         "duration_ms": int(round(duration * 1000)),
         "file_size_bytes": final_audio.stat().st_size,
