@@ -24,16 +24,16 @@ on:
   schedule:
     # SEG-SEX: 06:30, 12:30, 20:30 horário de Brasília
     # = 09:30, 15:30, 23:30 UTC
-    - cron: "30 11,16,23 * * 1-5"
+    - cron: "30 09,14,20 * * 1-5"
 
     # SÁBADO: 08:00 e 20:00 Brasília
     # = 11:00 e 23:00 UTC
-    - cron: "0 11,23 * * 6"
+    - cron: "0 09, 20 * * 6" 
 
     # DOMINGO: 07:30 e 20:30 Brasília
     # = 10:30 e 23:30 UTC
     # Domingo de manhã é o "horário de ouro" do nicho cristão
-    - cron: "30 10,23 * * 0"
+    - cron: "30 09,20 * * 0"
 
 jobs:
   run-pipeline:
