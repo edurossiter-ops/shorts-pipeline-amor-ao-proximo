@@ -18,21 +18,12 @@ on:
         required: true
         default: "configs/amor_ao_proximo.yml"
 
-  # Agendamento automático.
-  # Convenção do cron: "minuto hora dia-mês mês dia-semana"
-  # Dia da semana: 0=domingo, 1=seg, 2=ter, 3=qua, 4=qui, 5=sex, 6=sáb
   schedule:
   # SEG-SEX: 05:30, 11:30, 17:30 Brasília = 08:30, 14:30, 20:30 UTC
-   - cron: "30 8,14,20 * * 1-5"
+  - cron: "30 8,14,20 * * 1-5"
 
-    # SÁBADO: 08:00 e 20:00 Brasília
-    # = 11:00 e 23:00 UTC
-    - cron: "0 9,20 * * 6" 
-
-    # DOMINGO: 07:30 e 20:30 Brasília
-    # = 10:30 e 23:30 UTC
-    # Domingo de manhã é o "horário de ouro" do nicho cristão
-    - cron: "30 9,20 * * 7"
+  # SÁB e DOM: 06:00 e 18:00 Brasília = 09:00 e 21:00 UTC
+  - cron: "0 9,21 * * 0,6"
 
 jobs:
   run-pipeline:
